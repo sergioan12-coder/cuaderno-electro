@@ -1,0 +1,1530 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Cuaderno de Electromagnetismo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Layout: cuaderno cuadriculado; barra superior con pestañas, contenido de una columna amplia; vectores con color fijo (v azul, B verde, F rojo) */
+:root{
+  --bg:#edf1f4; --surface:#ffffff; --surface-2:#f6f8fa; --ink:#16202a; --muted:#566473; --line:#d2dae2; --grid:rgba(60,110,170,.09);
+  --vcol:#2152cf; --bcol:#0c8558; --fcol:#cf3d22; --rcol:#8a6a14;
+  --ok:#137a4b; --ok-bg:#e3f4ea; --bad:#b4321b; --bad-bg:#fbe7e2; --warn-bg:#fff4d6; --warn:#7a5a00;
+  --font-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-math:"STIX Two Text", "Cambria Math", "Times New Roman", serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f151b; --surface:#17202a; --surface-2:#1c2732; --ink:#e4ebf2; --muted:#93a2b1; --line:#2a3744; --grid:rgba(120,170,230,.07);
+  --vcol:#79a1ff; --bcol:#3fd09a; --fcol:#ff7d5e; --rcol:#dcb75a;
+  --ok:#55d394; --ok-bg:#15301f; --bad:#ff8a70; --bad-bg:#3a1c16; --warn-bg:#352b10; --warn:#f0cf6a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f151b; --surface:#17202a; --surface-2:#1c2732; --ink:#e4ebf2; --muted:#93a2b1; --line:#2a3744; --grid:rgba(120,170,230,.07);
+  --vcol:#79a1ff; --bcol:#3fd09a; --fcol:#ff7d5e; --rcol:#dcb75a;
+  --ok:#55d394; --ok-bg:#15301f; --bad:#ff8a70; --bad-bg:#3a1c16; --warn-bg:#352b10; --warn:#f0cf6a; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg); color:var(--ink); font-family:var(--font-body); font-size:15.5px; line-height:1.55}
+button,input,select{font:inherit; color:inherit}
+h1,h2,h3{font-family:var(--font-display); line-height:1.15; text-wrap:balance; margin:0}
+h2{font-size:1.5rem; font-weight:700}
+h3{font-size:1.08rem; font-weight:700}
+.wrap{max-width:1180px; margin:0 auto; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+.mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+.vec{position:relative; display:inline-block; font-family:var(--font-math); font-style:italic; font-weight:600; padding-top:.15em}
+.vec::before{content:"→"; position:absolute; left:50%; transform:translateX(-50%); top:-.42em; font-size:.62em; font-style:normal; font-weight:400}
+.math{font-family:var(--font-math); font-size:1.08em}
+
+/* Cabecera */
+body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top, 0px); z-index:10; background:var(--surface)}
+header.top{position:sticky; top:env(safe-area-inset-top, 0px); z-index:5; background:var(--surface); border-bottom:1px solid var(--line)}
+.top-row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding-block:12px 4px; flex-wrap:wrap}
+.brand{display:flex; align-items:baseline; gap:10px; min-width:0}
+.brand h1{font-size:1.28rem; font-weight:700; letter-spacing:-.01em}
+.brand .tag{font-size:.8rem; color:var(--muted)}
+.chip-prog{display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--muted); background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:4px 12px; cursor:pointer}
+.chip-prog b{color:var(--ink); font-family:var(--font-mono); font-weight:500}
+nav.tabs{display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; margin-bottom:-1px}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs a{flex:0 0 auto; text-decoration:none; color:var(--muted); padding:10px 14px; border-bottom:2px solid transparent; font-weight:500; font-size:.95rem}
+nav.tabs a:hover{color:var(--ink)}
+nav.tabs a[aria-current="page"]{color:var(--ink); border-bottom-color:var(--ink)}
+main{padding-block:24px 64px}
+section.view{display:flex; flex-direction:column; gap:20px}
+.view-head{display:flex; flex-direction:column; gap:6px; max-width:68ch}
+
+/* Componentes */
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:18px}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; border-radius:8px; border:1px solid var(--line); background:var(--surface); padding:8px 14px; cursor:pointer; font-weight:500; font-size:.92rem; white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.btn.primary:hover{opacity:.9}
+.btn.ghost{border-color:transparent; background:transparent; color:var(--muted)}
+.btn.ghost:hover{color:var(--ink)}
+.btn:disabled{opacity:.45; cursor:default}
+:focus-visible{outline:2px solid var(--vcol); outline-offset:2px}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.seg{display:inline-flex; flex-wrap:wrap; border:1px solid var(--line); border-radius:9px; padding:3px; gap:3px; background:var(--surface-2)}
+.seg button{border:0; background:transparent; padding:6px 11px; border-radius:6px; cursor:pointer; font-size:.88rem; color:var(--muted); font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); box-shadow:0 0 0 1px var(--line)}
+.filters{display:flex; gap:8px; flex-wrap:wrap}
+.pill{border:1px solid var(--line); background:var(--surface); border-radius:999px; padding:5px 12px; font-size:.86rem; cursor:pointer; color:var(--muted)}
+.pill[aria-pressed="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.eyebrow{font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600}
+
+/* Determinante y ecuaciones */
+.det{display:flex; align-items:center; gap:10px; margin:8px 0; overflow-x:auto}
+.det-pre{white-space:nowrap}
+.det-m{display:grid; grid-template-columns:repeat(3, auto); gap:2px 18px; padding:4px 12px; border-left:1.5px solid var(--ink); border-right:1.5px solid var(--ink); font-family:var(--font-mono); font-size:.88rem; text-align:center; font-variant-numeric:tabular-nums}
+.eq{font-family:var(--font-mono); font-size:.86rem; overflow-x:auto; white-space:nowrap; padding:2px 0}
+
+/* Teoría */
+.grid-2{display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px}
+.formula{display:flex; flex-direction:column; gap:8px}
+.formula .f{font-family:var(--font-math); font-size:1.45rem; padding:10px 0 4px}
+.formula p{margin:0; color:var(--muted); font-size:.92rem}
+.tema-block{display:flex; flex-direction:column; gap:12px}
+.cycle-wrap{display:grid; grid-template-columns:minmax(160px, 220px) 1fr; gap:24px; align-items:center}
+.cycle-wrap svg{width:100%; height:auto}
+.xtable{border-collapse:collapse; font-family:var(--font-math); font-size:1.05rem}
+.xtable th,.xtable td{border:1px solid var(--line); padding:6px 14px; text-align:center}
+.xtable th{background:var(--surface-2); font-weight:600}
+.xtable td.neg{color:var(--fcol)}
+.table-scroll{overflow-x:auto}
+
+/* Tarjetas */
+.flash-zone{display:flex; flex-direction:column; gap:14px; align-items:center}
+.flashcard{width:min(520px, 100%); aspect-ratio:16/9; perspective:1000px; cursor:pointer; border:0; background:transparent; padding:0}
+.flash-inner{position:relative; width:100%; height:100%; transition:transform .45s ease; transform-style:preserve-3d}
+.flashcard.flipped .flash-inner{transform:rotateY(180deg)}
+.flash-face{position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--line); border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:20px; text-align:center; background:var(--surface);
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size:22px 22px}
+.flash-face.back{transform:rotateY(180deg)}
+.flash-face .big{font-family:var(--font-math); font-size:clamp(1.3rem, 4vw, 2rem)}
+.flash-meta{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; align-items:center}
+
+/* Visualizador */
+.viz{display:grid; grid-template-columns:minmax(0, 1fr) 360px; gap:16px; align-items:start}
+.stage{position:relative; background:var(--surface); border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
+  background-image:linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size:24px 24px}
+.stage canvas{display:block; width:100%; height:clamp(340px, 58vh, 560px); touch-action:none; cursor:grab}
+.stage canvas:active{cursor:grabbing}
+.stage-tools{position:absolute; top:10px; right:10px; display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end}
+.stage-tools .btn{padding:5px 10px; font-size:.82rem; background:var(--surface)}
+.legend{position:absolute; left:12px; bottom:10px; display:flex; gap:12px; flex-wrap:wrap; font-size:.82rem; color:var(--muted); pointer-events:none}
+.legend span{display:inline-flex; align-items:center; gap:5px}
+.legend i{width:14px; height:3px; border-radius:2px; display:inline-block}
+.hint{position:absolute; left:12px; top:12px; font-size:.78rem; color:var(--muted); pointer-events:none}
+.controls{display:flex; flex-direction:column; gap:14px}
+.ctrl-group{display:flex; flex-direction:column; gap:6px}
+.ctrl-label{display:flex; align-items:center; justify-content:space-between; gap:8px; font-weight:600; font-size:.9rem}
+.ctrl-label .sw{width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:6px}
+.comp{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px}
+.comp label{display:flex; flex-direction:column; gap:2px; font-size:.75rem; color:var(--muted)}
+.field{width:100%; min-width:0; border:1px solid var(--line); background:var(--surface-2); border-radius:7px; padding:7px 8px; font-family:var(--font-mono); font-size:.88rem}
+.field:focus{outline:2px solid var(--vcol); outline-offset:0; background:var(--surface)}
+.field.invalid{border-color:var(--bad); background:var(--bad-bg)}
+.quick{display:flex; gap:4px; flex-wrap:wrap}
+.quick button{border:1px solid var(--line); background:var(--surface); border-radius:6px; padding:2px 8px; font-family:var(--font-math); font-size:.92rem; cursor:pointer}
+.quick button:hover{border-color:var(--muted)}
+.result{background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r); padding:14px; display:flex; flex-direction:column; gap:6px; font-size:.92rem}
+.result .big{font-family:var(--font-mono); font-size:.95rem; color:var(--fcol); font-weight:500; overflow-wrap:anywhere}
+.result table{border-collapse:collapse; width:100%; font-family:var(--font-mono); font-size:.82rem}
+.result td{padding:3px 4px; border-bottom:1px solid var(--line); vertical-align:top}
+.result td:first-child{font-family:var(--font-body); font-weight:600; white-space:nowrap}
+select.field{font-family:var(--font-body)}
+
+/* Resueltos */
+.solved-list{display:flex; flex-direction:column; gap:12px}
+.solved{display:flex; flex-direction:column; gap:12px}
+.solved-head{display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap}
+.solved-head .meta{display:flex; flex-direction:column; gap:2px; min-width:0}
+.badge{font-size:.74rem; border-radius:999px; padding:2px 9px; border:1px solid var(--line); color:var(--muted); white-space:nowrap}
+.badge.done{background:var(--ok-bg); color:var(--ok); border-color:transparent}
+.badge.pend{background:var(--warn-bg); color:var(--warn); border-color:transparent}
+.statement{margin:0; max-width:75ch}
+ol.steps{margin:0; padding-left:0; list-style:none; display:flex; flex-direction:column; gap:8px; counter-reset:paso}
+ol.steps li{counter-increment:paso; display:grid; grid-template-columns:28px minmax(0, 1fr); gap:8px; align-items:start}
+ol.steps li::before{content:counter(paso); font-family:var(--font-mono); font-size:.78rem; width:22px; height:22px; border-radius:50%; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--muted); margin-top:2px}
+ol.steps li > div{min-width:0}
+.answer{border-left:3px solid var(--fcol); padding:8px 12px; background:var(--surface-2); border-radius:0 8px 8px 0; font-weight:500}
+.note{border-left:3px solid var(--warn); background:var(--warn-bg); color:var(--ink); padding:8px 12px; border-radius:0 8px 8px 0; font-size:.92rem}
+
+/* Práctica */
+.practice{display:grid; grid-template-columns:300px minmax(0, 1fr); gap:16px; align-items:start}
+.type-list{display:flex; flex-direction:column; gap:14px}
+.type-list .tema-name{font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:4px}
+.type-btn{display:flex; flex-direction:column; gap:5px; width:100%; text-align:left; border:1px solid transparent; background:transparent; border-radius:8px; padding:8px 10px; cursor:pointer}
+.type-btn:hover{background:var(--surface-2)}
+.type-btn[aria-pressed="true"]{background:var(--surface-2); border-color:var(--line)}
+.type-btn .tn{font-weight:500; font-size:.92rem}
+.type-btn .ts{display:flex; align-items:center; gap:8px; font-size:.76rem; color:var(--muted)}
+.bar{flex:1; height:5px; border-radius:3px; background:var(--line); overflow:hidden}
+.bar > i{display:block; height:100%; background:var(--ok); border-radius:3px}
+.problem{display:flex; flex-direction:column; gap:16px}
+.problem .statement{font-size:1.02rem}
+.opts{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px}
+.opt{border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:10px 12px; cursor:pointer; text-align:left; font-size:.95rem}
+.opt:hover{border-color:var(--muted)}
+.opt[aria-pressed="true"]{border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink)}
+.opt.right{border-color:var(--ok); background:var(--ok-bg)}
+.opt.wrong{border-color:var(--bad); background:var(--bad-bg)}
+.answer-row{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)) auto; gap:8px; align-items:end}
+.answer-row.one{grid-template-columns:minmax(0, 260px) auto}
+.answer-row label{display:flex; flex-direction:column; gap:3px; font-size:.8rem; color:var(--muted)}
+.answer-row .unit{padding-bottom:8px; font-family:var(--font-mono); color:var(--muted)}
+.feedback{border-radius:8px; padding:10px 14px; font-weight:500}
+.feedback.ok{background:var(--ok-bg); color:var(--ok)}
+.feedback.bad{background:var(--bad-bg); color:var(--bad)}
+.feedback span{display:block; font-weight:400; color:var(--ink); font-size:.92rem; margin-top:2px}
+
+/* Progreso */
+.stats{display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px}
+.stat{display:flex; flex-direction:column; gap:4px}
+.stat .n{font-family:var(--font-display); font-size:2rem; font-weight:700; font-variant-numeric:tabular-nums; line-height:1}
+.prog-table{width:100%; border-collapse:collapse; font-size:.92rem}
+.prog-table th,.prog-table td{padding:8px 6px; border-bottom:1px solid var(--line); text-align:left}
+.prog-table th{font-size:.76rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600}
+.prog-table td.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+.prog-table .bar{min-width:80px}
+.confirm{display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:.9rem}
+
+@media (max-width: 900px){
+  .viz,.practice{grid-template-columns:minmax(0, 1fr)}
+  .cycle-wrap{grid-template-columns:minmax(0, 1fr)}
+  .cycle-wrap svg{max-width:220px}
+}
+@media (max-width: 520px){
+  .answer-row{grid-template-columns:repeat(3, minmax(0, 1fr))}
+  .answer-row .unit{grid-column:1 / -1; padding:0}
+  .answer-row.one{grid-template-columns:minmax(0, 1fr) auto}
+  .brand .tag{display:none}
+}
+@media (prefers-reduced-motion: reduce){.flash-inner{transition:none}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div class="brand"><h1>Cuaderno de Electromagnetismo</h1><span class="tag">Física de campos · apuntes de clase</span></div>
+      <button class="chip-prog" id="chipProg" type="button" title="Ver progreso">Aciertos <b id="chipAciertos">0/0</b> · Racha <b id="chipRacha">0</b></button>
+    </div>
+    <nav class="tabs" aria-label="Secciones">
+      <a href="#teoria" data-view="teoria">Teoría</a>
+      <a href="#visualizador" data-view="visualizador">Visualizador 3D</a>
+      <a href="#resueltos" data-view="resueltos">Ejercicios resueltos</a>
+      <a href="#practica" data-view="practica">Práctica</a>
+      <a href="#progreso" data-view="progreso">Mi progreso</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- TEORÍA -->
+  <section class="view" id="view-teoria" hidden>
+    <div class="view-head">
+      <h2>Teoría y fórmulas</h2>
+      <p class="muted" style="margin:0">Las ecuaciones de los apuntes, la regla del producto cruz y tarjetas de repaso.</p>
+    </div>
+    <div id="formulas" class="tema-block"></div>
+    <div class="panel">
+      <div class="cycle-wrap">
+        <svg viewBox="0 0 200 200" role="img" aria-label="Ciclo i, j, k">
+          <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+          <g fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted)">
+            <path d="M118 42 A 64 64 0 0 1 160 128" marker-end="url(#ah)"/>
+            <path d="M140 160 A 64 64 0 0 1 60 160" marker-end="url(#ah)"/>
+            <path d="M40 128 A 64 64 0 0 1 82 42" marker-end="url(#ah)"/>
+          </g>
+          <g font-family="STIX Two Text, serif" font-size="30" text-anchor="middle" fill="currentColor" style="color:var(--ink)">
+            <text x="100" y="44">î</text><text x="166" y="160">ĵ</text><text x="34" y="160">k̂</text>
+          </g>
+          <text x="100" y="112" text-anchor="middle" font-size="12" fill="currentColor" style="color:var(--muted)" font-family="IBM Plex Sans, sans-serif">a favor: +</text>
+        </svg>
+        <div style="display:flex; flex-direction:column; gap:10px; min-width:0">
+          <h3>Producto cruz de vectores unitarios</h3>
+          <p class="muted" style="margin:0; max-width:62ch">Recorre el ciclo î → ĵ → k̂ → î. Si vas a favor de la flecha el resultado es positivo; en contra, negativo. Un vector cruzado consigo mismo da cero. Con la mano derecha: los dedos apuntan en el primer vector, se doblan hacia el segundo, y el pulgar marca el resultado.</p>
+          <div class="table-scroll"><table class="xtable" aria-label="Tabla de productos cruz">
+            <tr><th>×</th><th>î</th><th>ĵ</th><th>k̂</th></tr>
+            <tr><th>î</th><td>0</td><td>k̂</td><td class="neg">−ĵ</td></tr>
+            <tr><th>ĵ</th><td class="neg">−k̂</td><td>0</td><td>î</td></tr>
+            <tr><th>k̂</th><td>ĵ</td><td class="neg">−î</td><td>0</td></tr>
+          </table></div>
+          <p class="small muted" style="margin:0">Se lee fila × columna: por ejemplo, ĵ × î = −k̂.</p>
+        </div>
+      </div>
+    </div>
+    <div class="panel" style="display:flex; flex-direction:column; gap:8px">
+      <h3>Descomponer un vector inclinado</h3>
+      <p style="margin:0; max-width:70ch">Si <span class="vec">B</span> forma un ángulo θ con el eje +x dentro del plano xy: <span class="math">B<sub>x</sub> = B cos θ</span> y <span class="math">B<sub>y</sub> = B sen θ</span>. El coseno va con el eje desde el que se mide el ángulo; el seno, con el otro.</p>
+      <p class="muted small" style="margin:0">Ejemplo de los apuntes: B = 0,02 T a 30° → <span class="vec">B</span> = 0,0173 î + 0,01 ĵ T.</p>
+    </div>
+    <div class="panel flash-zone">
+      <div class="row" style="justify-content:space-between; width:100%">
+        <h3>Tarjetas de repaso</h3>
+        <div class="seg" id="flashDeck">
+          <button type="button" data-deck="todas" aria-pressed="true">Todas</button>
+          <button type="button" data-deck="repasar" aria-pressed="false">Por repasar</button>
+        </div>
+      </div>
+      <button class="flashcard" id="flashcard" type="button" aria-label="Voltear tarjeta">
+        <div class="flash-inner">
+          <div class="flash-face"><span class="eyebrow">Pregunta</span><div class="big" id="flashA"></div><span class="small muted">Toca para ver la respuesta</span></div>
+          <div class="flash-face back"><span class="eyebrow">Respuesta</span><div class="big" id="flashB"></div></div>
+        </div>
+      </button>
+      <div class="flash-meta">
+        <button class="btn" type="button" id="flashPrev">Anterior</button>
+        <span class="small muted mono" id="flashPos"></span>
+        <button class="btn" type="button" id="flashNext">Siguiente</button>
+      </div>
+      <div class="flash-meta">
+        <button class="btn" type="button" id="flashRepasar">Repasar después</button>
+        <button class="btn primary" type="button" id="flashSe">Ya me la sé</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISUALIZADOR -->
+  <section class="view" id="view-visualizador" hidden>
+    <div class="view-head">
+      <h2>Visualizador 3D</h2>
+      <p class="muted" style="margin:0">Cambia los vectores y mira cómo responde la fuerza. Arrastra la escena para girarla.</p>
+    </div>
+    <div class="seg" id="modeSeg" role="group" aria-label="Modo">
+      <button type="button" data-mode="carga" aria-pressed="true">Carga en movimiento</button>
+      <button type="button" data-mode="cable" aria-pressed="false">Cable con corriente</button>
+      <button type="button" data-mode="espira" aria-pressed="false">Espira cerrada</button>
+      <button type="button" data-mode="campo" aria-pressed="false">Campo de una carga</button>
+    </div>
+    <div class="viz">
+      <div class="stage">
+        <canvas id="canvas" aria-label="Escena 3D con los vectores"></canvas>
+        <div class="hint" id="vizHint">Arrastra para girar</div>
+        <div class="stage-tools">
+          <button class="btn" type="button" id="viewIso">Vista 3D</button>
+          <button class="btn" type="button" id="viewXY">Plano xy</button>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="controls panel" id="controls"></div>
+    </div>
+  </section>
+
+  <!-- RESUELTOS -->
+  <section class="view" id="view-resueltos" hidden>
+    <div class="view-head">
+      <h2>Ejercicios resueltos</h2>
+      <p class="muted" style="margin:0">Los ejemplos de clase, paso a paso. Intenta cada paso antes de mostrarlo.</p>
+    </div>
+    <div class="filters" id="solvedFilters"></div>
+    <div class="solved-list" id="solvedList"></div>
+  </section>
+
+  <!-- PRÁCTICA -->
+  <section class="view" id="view-practica" hidden>
+    <div class="view-head">
+      <h2>Práctica</h2>
+      <p class="muted" style="margin:0">Problemas nuevos cada vez, con los mismos tipos de los apuntes. Solo cuenta tu primer intento de cada problema.</p>
+    </div>
+    <div class="practice">
+      <div class="panel type-list" id="typeList"></div>
+      <div class="panel problem" id="problem"></div>
+    </div>
+  </section>
+
+  <!-- PROGRESO -->
+  <section class="view" id="view-progreso" hidden>
+    <div class="view-head">
+      <h2>Mi progreso</h2>
+      <p class="muted small" style="margin:0" id="storeStatus">Guardado en este navegador.</p>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="panel table-scroll"><table class="prog-table" id="progTable"></table></div>
+    <div class="row" id="resetZone"></div>
+  </section>
+</main>
+
+<script>
+/* ===== Motor de cálculo y contenido (sin DOM) ===== */
+var MU0_4PI = 1e-7;
+
+function cross(a, b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]; }
+function dot(a, b) { return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]; }
+function add(a, b) { return [a[0]+b[0], a[1]+b[1], a[2]+b[2]]; }
+function sub(a, b) { return [a[0]-b[0], a[1]-b[1], a[2]-b[2]]; }
+function scale(a, s) { return [a[0]*s, a[1]*s, a[2]*s]; }
+function norm(a) { return Math.sqrt(dot(a, a)); }
+function clean(x) { return Math.abs(x) < 1e-300 ? 0 : x; }
+function angleDeg(a, b) {
+  var na = norm(a), nb = norm(b);
+  if (!na || !nb) return 0;
+  var c = Math.max(-1, Math.min(1, dot(a, b)/(na*nb)));
+  return Math.acos(c)*180/Math.PI;
+}
+
+/* --- Formato numérico (coma decimal, notación científica con ×10ⁿ) --- */
+var SUP = {'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+function sup(n) { return String(n).split('').map(function (c) { return SUP[c] || c; }).join(''); }
+function trimNum(s) { if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, ''); return s; }
+function fmt(x, sig) {
+  sig = sig || 3;
+  if (!isFinite(x)) return '—';
+  if (Math.abs(x) < 1e-300) return '0';
+  var neg = x < 0, ax = Math.abs(x);
+  var e = Math.floor(Math.log10(ax));
+  var m = ax / Math.pow(10, e);
+  var mr = Number(m.toPrecision(sig));
+  if (mr >= 10) { mr = mr/10; e += 1; }
+  var out;
+  if (e >= -2 && e <= 3) {
+    var dec = Math.max(0, sig - 1 - e);
+    out = trimNum(Number(ax.toPrecision(sig)).toFixed(dec));
+  } else {
+    out = trimNum(mr.toFixed(sig - 1)) + ' × 10' + sup(e);
+  }
+  out = out.replace('.', ',');
+  return (neg ? '−' : '') + out;
+}
+/* Coeficiente con signo para escribir dentro de un vector: "+ 0,02 ĵ" */
+function term(x, unit, first) {
+  if (Math.abs(x) < 1e-300) return '';
+  var s = fmt(Math.abs(x));
+  if (first) return (x < 0 ? '−' : '') + s + ' ' + unit;
+  return (x < 0 ? ' − ' : ' + ') + s + ' ' + unit;
+}
+var HAT = ['î', 'ĵ', 'k̂'];
+function vecStr(v) {
+  var out = '', first = true;
+  for (var i = 0; i < 3; i++) {
+    var t = term(v[i], HAT[i], first);
+    if (t) { out += t; first = false; }
+  }
+  return out || '0';
+}
+
+/* Interpretar respuestas escritas por el estudiante */
+function parseNum(s) {
+  if (s == null) return NaN;
+  s = String(s).trim();
+  if (s === '') return 0;
+  s = s.replace(/\s+/g, '').replace(/[−–]/g, '-').replace(/,/g, '.');
+  s = s.replace(/[x×*·]10\^?\(?([+-]?\d+)\)?/i, 'e$1');
+  s = s.replace(/^10\^\(?([+-]?\d+)\)?$/, '1e$1');
+  if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return NaN;
+  return Number(s);
+}
+
+/* --- Aleatoriedad reproducible --- */
+function rng(seed) {
+  var s = seed >>> 0 || 1;
+  return function () { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+}
+function pick(r, arr) { return arr[Math.floor(r()*arr.length)]; }
+function randInt(r, a, b) { return a + Math.floor(r()*(b - a + 1)); }
+
+var AXES = [
+  {v:[1,0,0], n:'+î', name:'+x'}, {v:[-1,0,0], n:'−î', name:'−x'},
+  {v:[0,1,0], n:'+ĵ', name:'+y'}, {v:[0,-1,0], n:'−ĵ', name:'−y'},
+  {v:[0,0,1], n:'+k̂', name:'+z'}, {v:[0,0,-1], n:'−k̂', name:'−z'}
+];
+function axisName(v) {
+  for (var i = 0; i < AXES.length; i++) if (norm(sub(AXES[i].v, v)) < 1e-9) return AXES[i].n;
+  return vecStr(v);
+}
+var PLANES = [
+  {id:'xy', a:0, b:1, txt:'plano xy', ax:'+x', bx:'+y'},
+  {id:'xz', a:0, b:2, txt:'plano xz', ax:'+x', bx:'+z'},
+  {id:'yz', a:1, b:2, txt:'plano yz', ax:'+y', bx:'+z'}
+];
+var ANGLES = [30, 37, 45, 53, 60];
+
+/* Matriz del determinante como HTML */
+function detHTML(r1, r2, pre) {
+  function cell(x) { return '<span>' + (typeof x === 'number' ? fmt(x) : x) + '</span>'; }
+  return '<div class="det">' + (pre ? '<span class="det-pre">' + pre + '</span>' : '') +
+    '<div class="det-m">' + HAT.map(cell).join('') + r1.map(cell).join('') + r2.map(cell).join('') + '</div></div>';
+}
+function expansionHTML(a, b) {
+  var cx = a[1]*b[2]-a[2]*b[1], cy = a[2]*b[0]-a[0]*b[2], cz = a[0]*b[1]-a[1]*b[0];
+  function p(x) { return '(' + fmt(x) + ')'; }
+  return '<div class="eq">î [' + p(a[1]) + p(b[2]) + ' − ' + p(a[2]) + p(b[1]) + '] − ĵ [' +
+    p(a[0]) + p(b[2]) + ' − ' + p(a[2]) + p(b[0]) + '] + k̂ [' +
+    p(a[0]) + p(b[1]) + ' − ' + p(a[1]) + p(b[0]) + ']</div>' +
+    '<div class="eq">= ' + vecStr([clean(cx), clean(cy), clean(cz)]) + '</div>';
+}
+var V = function (s) { return '<span class="vec">' + s + '</span>'; };
+
+/* ===== Temas ===== */
+var TEMAS = [
+  {id:'fuerza', nombre:'Fuerza magnética', resumen:'Carga en movimiento y cable con corriente dentro de un campo B'},
+  {id:'campo', nombre:'Campo de una carga en movimiento', resumen:'El campo B que produce una carga que se mueve'}
+];
+
+/* ===== Generadores de práctica ===== */
+var GENERADORES = [
+  {id:'direccion', tema:'fuerza', nombre:'Dirección de la fuerza', tipo:'mc', gen:genDireccion},
+  {id:'concepto', tema:'fuerza', nombre:'Conceptos clave', tipo:'mc', gen:genConcepto},
+  {id:'cruz', tema:'fuerza', nombre:'Fuerza con vectores en componentes', tipo:'vector', gen:genCruz},
+  {id:'angulo', tema:'fuerza', nombre:'Campo B inclinado un ángulo', tipo:'vector', gen:genAngulo},
+  {id:'magnitud', tema:'fuerza', nombre:'Magnitud |F| = |q|vB sen θ', tipo:'escalar', gen:genMagnitud},
+  {id:'cable', tema:'fuerza', nombre:'Cable con corriente', tipo:'vector', gen:genCable},
+  {id:'espira', tema:'fuerza', nombre:'Espira cerrada', tipo:'vector', gen:genEspira},
+  {id:'campo', tema:'campo', nombre:'Campo B de una carga en movimiento', tipo:'vector', gen:genCampo}
+];
+
+var DIR_OPCIONES = ['+î', '−î', '+ĵ', '−ĵ', '+k̂', '−k̂', 'F = 0'];
+
+function genDireccion(r) {
+  var v = pick(r, AXES), B;
+  if (r() < 0.18) B = pick(r, AXES.filter(function (a) { return Math.abs(dot(a.v, v.v)) === 1; }));
+  else B = pick(r, AXES.filter(function (a) { return dot(a.v, v.v) === 0; }));
+  var qs = r() < 0.5 ? 1 : -1;
+  var vxb = cross(v.v, B.v), F = scale(vxb, qs);
+  var correcta = norm(F) === 0 ? 'F = 0' : axisName(F);
+  var pasos = [
+    'Datos: q ' + (qs > 0 ? 'positiva' : 'negativa') + ', ' + V('v') + ' en dirección ' + v.n + ', ' + V('B') + ' en dirección ' + B.n + '.',
+    'Calcula ' + V('v') + ' × ' + V('B') + ' = (' + v.n + ') × (' + B.n + ').' +
+      (norm(vxb) === 0 ? ' Son paralelos, así que el producto cruz es cero.' :
+        ' Con el ciclo î → ĵ → k̂ → î: a favor del ciclo da positivo, en contra da negativo. Resultado: ' + axisName(vxb) + '.'),
+    norm(vxb) === 0 ? 'Si ' + V('v') + ' es paralela a ' + V('B') + ', la carga no siente fuerza magnética.' :
+      (qs > 0 ? 'La carga es positiva: la fuerza tiene la misma dirección que ' + V('v') + ' × ' + V('B') + '.' :
+        'La carga es negativa: la fuerza apunta al lado contrario de ' + V('v') + ' × ' + V('B') + '.'),
+    'Respuesta: ' + correcta + '.'
+  ];
+  return {
+    enunciado: 'Una carga <b>' + (qs > 0 ? 'positiva' : 'negativa') + '</b> se mueve con ' + V('v') + ' en dirección <b>' + v.n +
+      '</b> dentro de un campo ' + V('B') + ' en dirección <b>' + B.n + '</b>. ¿Hacia dónde apunta la fuerza magnética?',
+    opciones: DIR_OPCIONES.slice(), correcta: correcta, pasos: pasos,
+    preset: {modo:'carga', q:qs, v:v.v, B:B.v}
+  };
+}
+
+var CONCEPTOS = [
+  {p:'Una carga se mueve en la misma dirección del campo magnético. ¿Cuánto vale la fuerza magnética?',
+   o:['Cero','Máxima','Igual a qvB','Depende del signo de q'], c:'Cero',
+   e:'|F| = |q|vB sen θ y θ = 0°, así que sen θ = 0. El producto cruz de vectores paralelos es cero.'},
+  {p:'¿Para qué ángulo entre ' + V('v') + ' y ' + V('B') + ' la fuerza magnética es máxima?',
+   o:['90°','0°','45°','180°'], c:'90°', e:'sen θ es máximo (vale 1) cuando θ = 90°: la velocidad es perpendicular al campo.'},
+  {p:'Una espira cerrada con corriente está dentro de un campo magnético <b>uniforme</b>. ¿Cuánto vale la fuerza magnética total?',
+   o:['Cero','I·L·B','Depende de la forma de la espira','Depende del sentido de la corriente'], c:'Cero',
+   e:'Las fuerzas sobre los segmentos se cancelan: la suma de los vectores ℓ de un recorrido cerrado es cero, y por eso Σ I ℓ × B = I (Σ ℓ) × B = 0.'},
+  {p:'Si un protón y un electrón tienen la misma velocidad dentro del mismo campo B, sus fuerzas magnéticas…',
+   o:['Tienen igual magnitud y sentidos opuestos','Son idénticas','Son cero','Tienen distinta magnitud y el mismo sentido'],
+   c:'Tienen igual magnitud y sentidos opuestos', e:'Tienen la misma |q|, pero el signo de q invierte el sentido de F = q v × B.'},
+  {p:'¿Cuál es la unidad del campo magnético en el SI?', o:['Tesla (T)','Newton (N)','Coulomb (C)','Ampere (A)'], c:'Tesla (T)',
+   e:'B se mide en tesla. De F = qvB: 1 T = 1 N/(C·m/s) = 1 N/(A·m).'},
+  {p:'¿Qué vale î × î?', o:['0','k̂','1','−k̂'], c:'0', e:'El producto cruz de un vector consigo mismo es cero (sen 0° = 0).'},
+  {p:'¿Qué vale k̂ × ĵ?', o:['−î','î','0','ĵ'], c:'−î', e:'k̂ → ĵ va en contra del ciclo î → ĵ → k̂, así que el resultado es negativo: k̂ × ĵ = −î.'},
+  {p:'¿Qué vale ĵ × î?', o:['−k̂','k̂','0','î'], c:'−k̂', e:'î × ĵ = k̂; al invertir el orden cambia el signo: ĵ × î = −k̂.'},
+  {p:'En F = I ' + V('ℓ') + ' × ' + V('B') + ', ¿qué dirección tiene el vector ' + V('ℓ') + '?',
+   o:['La del sentido de la corriente','La del campo B','La de la fuerza','Siempre +x'], c:'La del sentido de la corriente',
+   e:'ℓ tiene la longitud del cable y apunta en el sentido en que circula la corriente I.'},
+  {p:'¿Cuál es el valor de μ₀?', o:['4π × 10⁻⁷ T·m/A','9 × 10⁹ N·m²/C²','8,85 × 10⁻¹² C²/(N·m²)','1,6 × 10⁻¹⁹ C'], c:'4π × 10⁻⁷ T·m/A',
+   e:'La permeabilidad del vacío es μ₀ = 4π × 10⁻⁷ T·m/A, así que μ₀/4π = 10⁻⁷.'}
+];
+function genConcepto(r) {
+  var c = pick(r, CONCEPTOS);
+  return {enunciado:c.p, opciones:c.o.slice(), correcta:c.c, pasos:[c.e], preset:null};
+}
+
+function genCruz(r) {
+  var qmu = randInt(r, 1, 9) * (r() < 0.25 ? -1 : 1), q = qmu*1e-6;
+  var v, B;
+  do { v = [randInt(r,-5,5), randInt(r,-5,5), randInt(r,-5,5)]; } while (norm(v) === 0);
+  do { B = [randInt(r,-5,5)/100, randInt(r,-5,5)/100, randInt(r,-5,5)/100]; } while (norm(cross(v, B)) === 0);
+  var vxb = cross(v, B), F = scale(vxb, q);
+  return {
+    enunciado:'Una carga q = ' + fmt(qmu) + ' μC tiene velocidad ' + V('v') + ' = ' + vecStr(v) + ' m/s y entra en un campo ' +
+      V('B') + ' = ' + vecStr(B) + ' T. Halla la fuerza magnética sobre la carga.',
+    respuesta:F, unidad:'N',
+    pasos:[
+      V('F') + ' = q ' + V('v') + ' × ' + V('B') + ', con q = ' + fmt(q) + ' C.',
+      'Arma el determinante:' + detHTML(v, B, V('v') + ' × ' + V('B') + ' ='),
+      'Expande por la primera fila:' + expansionHTML(v, B),
+      'Multiplica por q: ' + V('F') + ' = (' + fmt(q) + ') · (' + vecStr(vxb) + ')',
+      V('F') + ' = ' + vecStr(F) + ' N'
+    ],
+    preset:{modo:'carga', q:q, v:v, B:B}
+  };
+}
+
+function inclinado(r, mag) {
+  var pl = pick(r, PLANES), th = pick(r, ANGLES);
+  var B = [0,0,0];
+  B[pl.a] = mag*Math.cos(th*Math.PI/180);
+  B[pl.b] = mag*Math.sin(th*Math.PI/180);
+  return {B:B, pl:pl, th:th};
+}
+function descomp(nombre, mag, inc) {
+  var e = ['î','ĵ','k̂'];
+  return V(nombre) + ' = ' + fmt(mag) + ' cos ' + inc.th + '° ' + e[inc.pl.a] + ' + ' + fmt(mag) + ' sen ' + inc.th + '° ' + e[inc.pl.b] +
+    ' = ' + vecStr(inc.B) + ' T';
+}
+
+function genAngulo(r) {
+  var qmu = randInt(r, 1, 9) * (r() < 0.3 ? -1 : 1), q = qmu*1e-6;
+  var vm = randInt(r, 1, 9)*1e4, ax = pick(r, AXES), v = scale(ax.v, vm);
+  var Bm = randInt(r, 1, 5)/100, inc = inclinado(r, Bm);
+  if (norm(cross(v, inc.B)) < 1e-12) return genAngulo(r);
+  var vxb = cross(v, inc.B), F = scale(vxb, q);
+  return {
+    enunciado:'Una carga q = ' + fmt(qmu) + ' μC se mueve a ' + fmt(vm) + ' m/s en dirección ' + ax.n + '. Entra en un campo de ' +
+      fmt(Bm) + ' T que está en el ' + inc.pl.txt + ' y forma ' + inc.th + '° con el eje ' + inc.pl.ax + ' (hacia ' + inc.pl.bx + '). Halla la fuerza magnética.',
+    respuesta:F, unidad:'N',
+    pasos:[
+      'Escribe la velocidad como vector: ' + V('v') + ' = ' + vecStr(v) + ' m/s.',
+      'Descompón el campo con el ángulo medido desde ' + inc.pl.ax + ': ' + descomp('B', Bm, inc),
+      'Determinante:' + detHTML(v, inc.B, V('v') + ' × ' + V('B') + ' ='),
+      'Expande:' + expansionHTML(v, inc.B),
+      'Multiplica por q = ' + fmt(q) + ' C: ' + V('F') + ' = ' + vecStr(F) + ' N'
+    ],
+    preset:{modo:'carga', q:q, v:v, B:inc.B}
+  };
+}
+
+function genMagnitud(r) {
+  var qmu = randInt(r, 1, 9), q = qmu*1e-6, vm = randInt(r, 1, 9)*1e4, Bm = randInt(r, 1, 9)/100;
+  var th = pick(r, [30, 37, 45, 53, 60, 90, 120, 150]);
+  var F = q*vm*Bm*Math.sin(th*Math.PI/180);
+  var v = [vm, 0, 0], B = [Bm*Math.cos(th*Math.PI/180), Bm*Math.sin(th*Math.PI/180), 0];
+  return {
+    enunciado:'Una carga de ' + qmu + ' μC se mueve a ' + fmt(vm) + ' m/s formando ' + th + '° con un campo de ' + fmt(Bm) +
+      ' T. ¿Cuál es la magnitud de la fuerza magnética?',
+    respuesta:[F], unidad:'N',
+    pasos:[
+      'La magnitud del producto cruz es |' + V('v') + ' × ' + V('B') + '| = vB sen θ, así que |F| = |q| v B sen θ.',
+      '|F| = (' + fmt(q) + ')(' + fmt(vm) + ')(' + fmt(Bm) + ') sen ' + th + '°',
+      'sen ' + th + '° = ' + fmt(Math.sin(th*Math.PI/180), 4),
+      '|F| = ' + fmt(F) + ' N'
+    ],
+    preset:{modo:'carga', q:q, v:v, B:B}
+  };
+}
+
+function genCable(r) {
+  var I = randInt(r, 1, 10), Lcm = pick(r, [1, 2, 5, 10, 20, 25, 40, 50]), L = Lcm/100;
+  var ax = pick(r, AXES), l = scale(ax.v, L);
+  var Bm = randInt(r, 1, 5)/100, inc = inclinado(r, Bm);
+  if (norm(cross(l, inc.B)) < 1e-12) return genCable(r);
+  var lxb = cross(l, inc.B), F = scale(lxb, I);
+  return {
+    enunciado:'Un cable recto de ' + Lcm + ' cm lleva una corriente de ' + I + ' A en dirección ' + ax.n + '. Está en un campo de ' +
+      fmt(Bm) + ' T contenido en el ' + inc.pl.txt + ', a ' + inc.th + '° del eje ' + inc.pl.ax + ' (hacia ' + inc.pl.bx + '). Halla la fuerza magnética sobre el cable.',
+    respuesta:F, unidad:'N',
+    pasos:[
+      V('F') + ' = I ' + V('ℓ') + ' × ' + V('B') + '. El vector ' + V('ℓ') + ' mide lo que mide el cable (en metros) y apunta como la corriente: ' + V('ℓ') + ' = ' + vecStr(l) + ' m.',
+      'Descompón el campo: ' + descomp('B', Bm, inc),
+      'Determinante:' + detHTML(l, inc.B, V('ℓ') + ' × ' + V('B') + ' ='),
+      'Expande:' + expansionHTML(l, inc.B),
+      'Multiplica por I = ' + I + ' A: ' + V('F') + ' = ' + vecStr(F) + ' N'
+    ],
+    preset:{modo:'cable', q:I, v:l, B:inc.B}
+  };
+}
+
+function genEspira(r) {
+  var pl = pick(r, PLANES), a = randInt(r, 1, 6)/10, b = randInt(r, 1, 6)/10, I = randInt(r, 1, 10);
+  var B;
+  do { B = [randInt(r,-3,3)/10, randInt(r,-3,3)/10, randInt(r,-3,3)/10]; } while (norm(B) === 0);
+  var P = [[0,0],[a,0],[a,b],[0,b]].map(function (p) { var x = [0,0,0]; x[pl.a] = p[0]; x[pl.b] = p[1]; return x; });
+  var idx, l, F;
+  var tries = 0;
+  do {
+    idx = randInt(r, 0, 3);
+    l = sub(P[(idx+1)%4], P[idx]);
+    F = scale(cross(l, B), I);
+    tries++;
+  } while (norm(F) === 0 && tries < 10);
+  if (norm(F) === 0) return genEspira(r);
+  var labels = ['a','b','c','d'];
+  var seg = labels[idx] + labels[(idx+1)%4];
+  function pt(p) { return '(' + p.map(function (x) { return fmt(x); }).join('; ') + ')'; }
+  return {
+    enunciado:'Una espira rectangular en el ' + pl.txt + ' tiene vértices a' + pt(P[0]) + ', b' + pt(P[1]) + ', c' + pt(P[2]) + ', d' + pt(P[3]) +
+      ' (en metros). Lleva ' + I + ' A en el sentido a → b → c → d → a, dentro de un campo uniforme ' + V('B') + ' = ' + vecStr(B) +
+      ' T. Halla la fuerza sobre el segmento <b>' + seg + '</b>.',
+    respuesta:F, unidad:'N',
+    pasos:[
+      'El vector del segmento va del punto inicial al final: ' + V('ℓ') + '<sub>' + seg + '</sub> = ' + labels[(idx+1)%4] + ' − ' + labels[idx] + ' = ' + vecStr(l) + ' m.',
+      'Determinante:' + detHTML(l, B, V('ℓ') + ' × ' + V('B') + ' ='),
+      'Expande:' + expansionHTML(l, B),
+      'Multiplica por I = ' + I + ' A: ' + V('F') + '<sub>' + seg + '</sub> = ' + vecStr(F) + ' N',
+      'Comprobación: si sumas las fuerzas de los cuatro lados obtienes cero, porque la espira es cerrada y el campo es uniforme.'
+    ],
+    preset:{modo:'espira', I:I, puntos:P, B:B, nombres:labels}
+  };
+}
+
+function genCampo(r) {
+  var qmu = randInt(r, 1, 9) * (r() < 0.3 ? -1 : 1), q = qmu*1e-6;
+  var vm = randInt(r, 1, 9)*1e4, ax = pick(r, AXES), v = scale(ax.v, vm);
+  var P;
+  do { P = [randInt(r,-3,3), randInt(r,-3,3), randInt(r,-3,3)]; } while (norm(cross(v, P)) === 0);
+  var rn = norm(P), rhat = scale(P, 1/rn), vxr = cross(v, rhat);
+  var B = scale(vxr, MU0_4PI*q/(rn*rn));
+  return {
+    enunciado:'Una carga q = ' + fmt(qmu) + ' μC está en el origen y se mueve con ' + V('v') + ' = ' + fmt(vm) + ' m/s en dirección ' + ax.n +
+      '. Halla el campo magnético que produce en el punto P(' + P.map(function (x) { return fmt(x); }).join('; ') + ') m.',
+    respuesta:B, unidad:'T',
+    pasos:[
+      V('B') + ' = (μ₀/4π) · q ' + V('v') + ' × r̂ / r², con μ₀/4π = 10⁻⁷ T·m/A.',
+      'Vector posición desde la carga hasta P: ' + V('r') + ' = ' + vecStr(P) + ' m, r = √' + fmt(dot(P,P)) + ' = ' + fmt(rn, 4) + ' m.',
+      'Vector unitario: r̂ = ' + V('r') + '/r = ' + vecStr(rhat),
+      V('v') + ' × r̂:' + detHTML(v, rhat) + '= ' + vecStr(vxr),
+      'Factor: 10⁻⁷ · (' + fmt(q) + ') / (' + fmt(rn, 4) + ')² = ' + fmt(MU0_4PI*q/(rn*rn)),
+      V('B') + ' = ' + vecStr(B) + ' T'
+    ],
+    preset:{modo:'campo', q:q, v:v, P:P}
+  };
+}
+
+/* ===== Corrección ===== */
+function corregirVector(ans, ref) {
+  var mag = norm(ref);
+  if (ref.length === 1) {
+    var ok1 = Math.abs(ans[0] - ref[0]) <= 0.02*Math.abs(ref[0]);
+    var msg = ok1 ? '' : (Math.abs(Math.abs(ans[0]) - Math.abs(ref[0])) <= 0.02*Math.abs(ref[0]) ? 'La magnitud siempre es positiva.' : '');
+    if (!ok1 && !msg && ans[0] !== 0) {
+      var ratio = Math.abs(ans[0]/ref[0]), p = Math.log10(ratio);
+      if (Math.abs(p - Math.round(p)) < 0.01 && Math.round(p) !== 0) msg = 'Los dígitos están bien, pero la potencia de 10 no. Revisa las unidades (μC → 10⁻⁶ C, cm → 10⁻² m).';
+    }
+    return {ok:ok1, msg:msg};
+  }
+  if (mag === 0) return {ok: norm(ans) === 0, msg:''};
+  var tol = 0.02*mag, ok = true;
+  for (var i = 0; i < 3; i++) if (Math.abs(ans[i] - ref[i]) > tol) ok = false;
+  if (ok) return {ok:true, msg:''};
+  var neg = true;
+  for (var j = 0; j < 3; j++) if (Math.abs(ans[j] + ref[j]) > tol) neg = false;
+  if (neg) return {ok:false, msg:'Obtuviste el vector opuesto. Revisa el signo de q o el orden del producto cruz (v × B, no B × v).'};
+  var na = norm(ans);
+  if (na > 0) {
+    var c = dot(ans, ref)/(na*mag);
+    if (c > 0.999) {
+      var pp = Math.log10(na/mag);
+      if (Math.abs(pp - Math.round(pp)) < 0.01) return {ok:false, msg:'La dirección es correcta, pero la potencia de 10 no. Revisa las conversiones de unidades.'};
+      return {ok:false, msg:'La dirección es correcta, pero la magnitud no.'};
+    }
+    if (Math.abs(na - mag) <= tol) return {ok:false, msg:'La magnitud es correcta, pero la dirección no. Revisa los signos de las componentes.'};
+  }
+  return {ok:false, msg:''};
+}
+
+/* ===== Ejercicios resueltos de los apuntes ===== */
+var RESUELTOS = [
+  {id:'r-dir-a', tema:'fuerza', titulo:'Dirección de la fuerza (a)',
+   enunciado:'Una carga positiva se mueve hacia arriba (' + V('v') + ' en +ĵ) dentro de un campo horizontal hacia la derecha (' + V('B') + ' en +î). ¿Hacia dónde apunta la fuerza?',
+   pasos:[
+     'Datos: q positiva, ' + V('v') + ' = ĵ, ' + V('B') + ' = î.',
+     V('F') + ' = q ' + V('v') + ' × ' + V('B') + ' → la dirección la da ĵ × î.',
+     'ĵ → î va en contra del ciclo î → ĵ → k̂, así que ĵ × î = −k̂.',
+     'La carga es positiva, así que no se invierte nada.'
+   ],
+   resultado:'La fuerza apunta en −k̂ (hacia adentro de la hoja).',
+   preset:{modo:'carga', q:1, v:[0,1,0], B:[1,0,0]}},
+  {id:'r-dir-b', tema:'fuerza', titulo:'Dirección de la fuerza (b)',
+   enunciado:'Una carga negativa se mueve hacia la derecha (' + V('v') + ' en +î) en un campo vertical hacia arriba (' + V('B') + ' en +ĵ). ¿Hacia dónde apunta la fuerza?',
+   pasos:[
+     'Datos: q negativa, ' + V('v') + ' = î, ' + V('B') + ' = ĵ.',
+     'î × ĵ = k̂ (a favor del ciclo).',
+     'Como q es negativa, la fuerza va al revés: −(î × ĵ) = −k̂.'
+   ],
+   resultado:'La fuerza apunta en −k̂.',
+   preset:{modo:'carga', q:-1, v:[1,0,0], B:[0,1,0]}},
+  {id:'r-cruz', tema:'fuerza', titulo:'Carga con v y B en componentes',
+   enunciado:'Una carga q = 5 μC tiene velocidad ' + V('v') + ' = 2î − 3ĵ + 4k̂ m/s. Entra en un campo ' + V('B') + ' = 0,01î − 0,02ĵ + 0,03k̂ T. Halla la fuerza magnética sobre la carga.',
+   pasos:[
+     V('F') + ' = q ' + V('v') + ' × ' + V('B') + ', con q = 5 × 10⁻⁶ C.',
+     'Determinante:' + detHTML([2,-3,4], [0.01,-0.02,0.03], V('v') + ' × ' + V('B') + ' ='),
+     'Expande por la primera fila:' + expansionHTML([2,-3,4], [0.01,-0.02,0.03]),
+     'Multiplica por q: ' + V('F') + ' = 5 × 10⁻⁶ (−0,01î − 0,02ĵ − 0,01k̂)'
+   ],
+   resultado:V('F') + ' = −5 × 10⁻⁸ î − 1 × 10⁻⁷ ĵ − 5 × 10⁻⁸ k̂ N',
+   preset:{modo:'carga', q:5e-6, v:[2,-3,4], B:[0.01,-0.02,0.03]}},
+  {id:'r-angulo', tema:'fuerza', titulo:'Carga con B inclinado 30°',
+   enunciado:'Una carga q = 2 μC tiene velocidad v = 4 × 10⁴ m/s en dirección del eje y. Entra en un campo B = 0,02 T que forma 30° con la horizontal (eje +x). Halla la fuerza magnética sobre la carga.',
+   pasos:[
+     'Datos: q = 2 × 10⁻⁶ C, ' + V('v') + ' = 4 × 10⁴ ĵ m/s.',
+     'Descompón el campo: ' + V('B') + ' = 0,02 cos 30° î + 0,02 <b>sen</b> 30° ĵ = 0,0173î + 0,01ĵ T.',
+     'Método rápido: la componente ĵ de B es paralela a ' + V('v') + ' y no aporta (ĵ × ĵ = 0). Solo cuenta B<sub>x</sub>: ĵ × î = −k̂.',
+     'Con el determinante:' + detHTML([0,4e4,0], [0.0173,0.01,0], V('v') + ' × ' + V('B') + ' =') + 'Solo sobrevive la componente k̂: (0)(0,01) − (4 × 10⁴)(0,0173) = −692.',
+     V('F') + ' = (2 × 10⁻⁶)(−692) k̂'
+   ],
+   resultado:V('F') + ' ≈ −1,39 × 10⁻³ k̂ N',
+   nota:'Los dos métodos deben dar lo mismo. Si al usar el determinante el resultado sale positivo, hay un signo perdido: el término k̂ es (v<sub>x</sub>B<sub>y</sub> − v<sub>y</sub>B<sub>x</sub>) = −v<sub>y</sub>B<sub>x</sub>. Además, la componente ĵ del campo lleva <b>sen</b> 30°, no cos 30°.',
+   preset:{modo:'carga', q:2e-6, v:[0,4e4,0], B:[0.02*Math.cos(Math.PI/6), 0.02*Math.sin(Math.PI/6), 0]}},
+  {id:'r-proton', tema:'fuerza', titulo:'Protón a 30° del eje z',
+   enunciado:'Un protón (q = 1,6 × 10⁻¹⁹ C) sale del origen con v = 8 × 10⁴ m/s formando 30° con el eje z (en el plano xz). Entra en un campo B = 0,01 T en dirección del eje z. Halla la fuerza magnética.',
+   pasos:[
+     'Descompón la velocidad: ' + V('v') + ' = 8 × 10⁴ sen 30° î + 8 × 10⁴ cos 30° k̂ = 4 × 10⁴ î + 6,93 × 10⁴ k̂ m/s.',
+     V('B') + ' = 0,01 k̂ T. La componente k̂ de la velocidad es paralela a B y no aporta.',
+     'Solo queda v<sub>x</sub>: î × k̂ = −ĵ (en contra del ciclo).',
+     V('F') + ' = (1,6 × 10⁻¹⁹)(4 × 10⁴)(0,01)(−ĵ)'
+   ],
+   resultado:V('F') + ' = −6,4 × 10⁻¹⁷ ĵ N',
+   preset:{modo:'carga', q:1.6e-19, v:[4e4, 0, 8e4*Math.cos(Math.PI/6)], B:[0,0,0.01]}},
+  {id:'r-cable', tema:'fuerza', titulo:'Cable de 1 cm con B a 30°',
+   enunciado:'Un cable de 1 cm lleva una corriente I = 2 A hacia la izquierda (según la figura de los apuntes). Está en un campo B = 0,02 T que forma 30° con la horizontal. Halla la fuerza magnética sobre el cable.',
+   pasos:[
+     V('F') + ' = I ' + V('ℓ') + ' × ' + V('B') + '. La corriente va hacia −x: ' + V('ℓ') + ' = −0,01 î m.',
+     V('B') + ' = 0,02 cos 30° î + 0,02 sen 30° ĵ T.',
+     'B<sub>x</sub> es paralela al cable y no aporta. Queda (−î) × ĵ = −k̂.',
+     V('F') + ' = (2)(0,01)(0,02)(sen 30°)(−k̂)'
+   ],
+   resultado:V('F') + ' = −2 × 10⁻⁴ k̂ N',
+   nota:'El signo menos sale de que la corriente va hacia −x. Si la corriente fuera hacia +x, la fuerza sería +2 × 10⁻⁴ k̂ N.',
+   preset:{modo:'cable', q:2, v:[-0.01,0,0], B:[0.02*Math.cos(Math.PI/6), 0.01, 0]}},
+  {id:'r-triangulo', tema:'fuerza', titulo:'Espira triangular en B = 3 T',
+   enunciado:'Una espira triangular (catetos de 0,8 m y 0,6 m) conduce 5 A en el sentido indicado, dentro de un campo uniforme ' + V('B') + ' = 3 ĵ T. Halla la fuerza magnética total sobre la espira.',
+   pasos:[
+     'Segmento ab (horizontal, hacia −x): ' + V('ℓ') + ' = −0,8 î → ' + V('F') + '<sub>ab</sub> = 5(−0,8 î) × 3ĵ = −12 k̂ N.',
+     'Segmento bc (vertical): ' + V('ℓ') + ' = 0,6 ĵ, paralelo a B → ' + V('F') + '<sub>bc</sub> = 0.',
+     'Segmento ca (hipotenusa): ' + V('ℓ') + ' = 0,8 î − 0,6 ĵ → solo aporta 0,8 î: ' + V('F') + '<sub>ca</sub> = 5(0,8 î) × 3ĵ = +12 k̂ N.',
+     'Suma: −12 k̂ + 0 + 12 k̂ = 0.'
+   ],
+   resultado:V('F') + '<sub>total</sub> = 0. Esto se cumple siempre para un lazo cerrado en un campo uniforme.',
+   preset:{modo:'espira', I:5, puntos:[[0.8,0,0],[0,0,0],[0,0.6,0]], B:[0,3,0], nombres:['a','b','c']}},
+  {id:'r-cubo', tema:'fuerza', titulo:'Espira sobre las aristas de un cubo',
+   enunciado:'Un cubo de arista 0,4 m tiene cuatro segmentos de cable ab, bc, cd y da que forman una espira cerrada con 5 A. Hay un campo ' + V('B') + ' = 0,02 T en dirección +y. Halla la fuerza magnética total.',
+   pasos:[
+     'ab: ' + V('ℓ') + ' = −0,4 ĵ, paralelo a B → ' + V('F') + '<sub>ab</sub> = 0.',
+     'bc: ' + V('ℓ') + ' = 0,4 k̂ → ' + V('F') + '<sub>bc</sub> = 5(0,4 k̂) × 0,02 ĵ = −0,04 î N.',
+     'cd: ' + V('ℓ') + ' = −0,4 î + 0,4 ĵ → ' + V('F') + '<sub>cd</sub> = 5(−0,4 î) × 0,02 ĵ = −0,04 k̂ N.',
+     'da: ' + V('ℓ') + ' = 0,4 î − 0,4 k̂ → ' + V('F') + '<sub>da</sub> = 0,04 k̂ + 0,04 î N.',
+     'Suma: (−0,04 + 0,04) î + (−0,04 + 0,04) k̂ = 0.'
+   ],
+   resultado:V('F') + '<sub>total</sub> = 0',
+   preset:{modo:'espira', I:5, puntos:[[0.4,0.4,0],[0.4,0,0],[0.4,0,0.4],[0,0.4,0.4]], B:[0,0.02,0], nombres:['a','b','c','d']}},
+  {id:'r-campo', tema:'campo', titulo:'Campo de una carga de 7 μC',
+   enunciado:'Una carga q = 7 μC está en el origen y se mueve con v = 4 × 10⁴ m/s en dirección del eje x. Halla el campo magnético que produce en el punto P.',
+   pendiente:'El enunciado de los apuntes no dice cuál es el punto P. Mientras tanto, practica este tipo de problema en «Campo B de una carga en movimiento», dentro de Práctica.',
+   pasos:[
+     V('B') + ' = (μ₀/4π) · q ' + V('v') + ' × r̂ / r², con μ₀ = 4π × 10⁻⁷ T·m/A.',
+     V('r') + ' es el vector posición desde la carga hasta el punto P; r̂ = ' + V('r') + '/r.'
+   ],
+   resultado:'Depende del punto P.',
+   preset:{modo:'campo', q:7e-6, v:[4e4,0,0], P:[0,1,0]}}
+];
+
+/* ===== Fórmulas y tarjetas ===== */
+var FORMULAS = [
+  {tema:'fuerza', titulo:'Fuerza sobre una carga en movimiento', f:V('F') + ' = q ' + V('v') + ' × ' + V('B'),
+   d:'q en coulomb [C], v en m/s, B en tesla [T], F en newton [N]. Magnitud: |F| = |q| v B sen θ.'},
+  {tema:'fuerza', titulo:'Fuerza sobre un cable con corriente', f:V('F') + ' = I ' + V('ℓ') + ' × ' + V('B'),
+   d:'I en ampere [A]. ℓ es un vector con la longitud del cable que apunta en el sentido de la corriente.'},
+  {tema:'fuerza', titulo:'Espira cerrada en campo uniforme', f:V('F') + '<sub>total</sub> = I (Σ ' + V('ℓ') + ') × ' + V('B') + ' = 0',
+   d:'Los vectores ℓ de un recorrido cerrado suman cero, así que la fuerza total es cero (aunque cada lado sí sienta fuerza).'},
+  {tema:'campo', titulo:'Campo de una carga en movimiento', f:V('B') + ' = (μ₀ / 4π) · q ' + V('v') + ' × r̂ / r²',
+   d:'μ₀ = 4π × 10⁻⁷ T·m/A. r es la distancia de la carga al punto y r̂ el vector unitario que apunta de la carga al punto.'}
+];
+var FLASH = [
+  {id:'f1', a:'î × ĵ', b:'k̂'}, {id:'f2', a:'ĵ × k̂', b:'î'}, {id:'f3', a:'k̂ × î', b:'ĵ'},
+  {id:'f4', a:'ĵ × î', b:'−k̂'}, {id:'f5', a:'k̂ × ĵ', b:'−î'}, {id:'f6', a:'î × k̂', b:'−ĵ'},
+  {id:'f7', a:'î × î', b:'0 (vectores paralelos)'},
+  {id:'f8', a:'Fuerza sobre una carga en movimiento', b:V('F') + ' = q ' + V('v') + ' × ' + V('B')},
+  {id:'f9', a:'Fuerza sobre un cable con corriente', b:V('F') + ' = I ' + V('ℓ') + ' × ' + V('B')},
+  {id:'f10', a:'Magnitud de la fuerza magnética', b:'|F| = |q| v B sen θ'},
+  {id:'f11', a:'¿Cuándo es cero la fuerza sobre una carga?', b:'Cuando v = 0 o cuando v es paralela (o antiparalela) a B'},
+  {id:'f12', a:'Fuerza total sobre un lazo cerrado en campo uniforme', b:'Cero'},
+  {id:'f13', a:'Si la carga es negativa…', b:'La fuerza apunta al lado contrario de v × B'},
+  {id:'f14', a:'Valor de μ₀', b:'4π × 10⁻⁷ T·m/A'},
+  {id:'f15', a:'Campo de una carga en movimiento', b:V('B') + ' = (μ₀/4π) q ' + V('v') + ' × r̂ / r²'},
+  {id:'f16', a:'Unidad del campo magnético', b:'Tesla: 1 T = 1 N/(A·m)'}
+];
+
+if (typeof module !== 'undefined') module.exports = {cross:cross, fmt:fmt, parseNum:parseNum, vecStr:vecStr, GENERADORES:GENERADORES, rng:rng, corregirVector:corregirVector, RESUELTOS:RESUELTOS, scale:scale, norm:norm, add:add, sub:sub};
+
+</script>
+<script>
+(function () {
+'use strict';
+var $ = function (s, el) { return (el || document).querySelector(s); };
+var $$ = function (s, el) { return Array.prototype.slice.call((el || document).querySelectorAll(s)); };
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function temaNombre(id) { for (var i = 0; i < TEMAS.length; i++) if (TEMAS[i].id === id) return TEMAS[i].nombre; return id; }
+
+/* ================= Progreso y almacenamiento ================= */
+var LS_KEY = 'cuaderno-electro-progreso-v1';
+function progVacio() { return {v:1, practica:{}, racha:0, mejorRacha:0, resueltos:{}, flash:{}, t:0}; }
+var prog = progVacio();
+try { var raw = localStorage.getItem(LS_KEY); if (raw) prog = Object.assign(progVacio(), JSON.parse(raw)); } catch (e) {}
+var dbRef = null, dbOk = false, saveTimer = null;
+
+function guardar() {
+  prog.t = Date.now();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function () {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(prog)); } catch (e) {}
+    if (dbRef && dbOk) {
+      dbRef.set(JSON.parse(JSON.stringify(prog))).catch(function () { dbOk = false; pintarEstadoGuardado(); });
+    }
+  }, 900);
+  pintarChip();
+}
+function iniciarCuenta() {
+  if (!window.claude || typeof window.claude.use !== 'function') return;
+  Promise.all([window.claude.use('db'), window.claude.use('user')]).then(function (res) {
+    var db = res[0], user = res[1];
+    if (!db || !user) return;
+    return user.id().then(function (id) {
+      if (!id) return;
+      dbRef = db.doc('data/users/' + id + '/progreso');
+      return dbRef.get().then(function (snap) {
+        dbOk = true;
+        var d = snap.exists ? snap.data() : null;
+        if (d && (d.t || 0) > (prog.t || 0)) {
+          prog = Object.assign(progVacio(), JSON.parse(JSON.stringify(d)));
+          try { localStorage.setItem(LS_KEY, JSON.stringify(prog)); } catch (e) {}
+          pintarTodo();
+        } else if (prog.t) {
+          dbRef.set(JSON.parse(JSON.stringify(prog))).catch(function () { dbOk = false; pintarEstadoGuardado(); });
+        }
+        pintarEstadoGuardado();
+      });
+    });
+  }).catch(function () { dbOk = false; pintarEstadoGuardado(); });
+}
+function totales() {
+  var i = 0, a = 0;
+  for (var k in prog.practica) { i += prog.practica[k].i || 0; a += prog.practica[k].a || 0; }
+  return {i:i, a:a};
+}
+function pintarChip() {
+  var t = totales();
+  $('#chipAciertos').textContent = t.a + '/' + t.i;
+  $('#chipRacha').textContent = prog.racha || 0;
+}
+function pintarEstadoGuardado() {
+  $('#storeStatus').textContent = dbOk ? 'Tu progreso se guarda en tu cuenta y en este navegador.' :
+    'Tu progreso se guarda en este navegador. Si abres la página en otro dispositivo, empezará en cero.';
+}
+
+/* ================= Navegación ================= */
+var VISTAS = ['teoria', 'visualizador', 'resueltos', 'practica', 'progreso'];
+function mostrarVista() {
+  var h = (location.hash || '').replace('#', '');
+  if (VISTAS.indexOf(h) < 0) h = 'teoria';
+  VISTAS.forEach(function (v) { $('#view-' + v).hidden = v !== h; });
+  $$('nav.tabs a').forEach(function (a) { if (a.dataset.view === h) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  if (h === 'visualizador') { ajustarCanvas(); dibujar(); }
+  if (h === 'progreso') pintarProgreso();
+  if (h === 'practica' && !pr.problem) nuevoProblema(pr.gid);
+}
+function ir(v) { if (location.hash !== '#' + v) location.hash = v; else mostrarVista(); window.scrollTo(0, 0); }
+window.addEventListener('hashchange', function () { mostrarVista(); window.scrollTo(0, 0); });
+$('#chipProg').addEventListener('click', function () { ir('progreso'); });
+
+/* ================= Teoría ================= */
+function pintarFormulas() {
+  var html = '';
+  TEMAS.forEach(function (t) {
+    var fs = FORMULAS.filter(function (f) { return f.tema === t.id; });
+    if (!fs.length) return;
+    html += '<div class="tema-block"><span class="eyebrow">' + esc(t.nombre) + '</span><div class="grid-2">' +
+      fs.map(function (f) { return '<div class="panel formula"><h3>' + f.titulo + '</h3><div class="f">' + f.f + '</div><p>' + f.d + '</p></div>'; }).join('') +
+      '</div></div>';
+  });
+  $('#formulas').innerHTML = html;
+}
+var fl = {deck:'todas', i:0};
+function mazo() { return fl.deck === 'todas' ? FLASH : FLASH.filter(function (c) { return prog.flash[c.id] !== 'se'; }); }
+function pintarFlash() {
+  var m = mazo(), card = $('#flashcard');
+  card.classList.remove('flipped');
+  if (!m.length) {
+    $('#flashA').innerHTML = 'No tienes tarjetas por repasar';
+    $('#flashB').innerHTML = 'Cambia a «Todas» para verlas de nuevo';
+    $('#flashPos').textContent = '0/0';
+    return;
+  }
+  if (fl.i >= m.length) fl.i = 0;
+  if (fl.i < 0) fl.i = m.length - 1;
+  var c = m[fl.i];
+  $('#flashA').innerHTML = c.a;
+  setTimeout(function () { $('#flashB').innerHTML = c.b; }, 120);
+  var est = prog.flash[c.id] === 'se' ? ' · la sabes' : prog.flash[c.id] === 'repasar' ? ' · por repasar' : '';
+  $('#flashPos').textContent = (fl.i + 1) + '/' + m.length + est;
+}
+$('#flashcard').addEventListener('click', function () { this.classList.toggle('flipped'); });
+$('#flashPrev').addEventListener('click', function () { fl.i--; pintarFlash(); });
+$('#flashNext').addEventListener('click', function () { fl.i++; pintarFlash(); });
+function marcarFlash(v) {
+  var m = mazo(); if (!m.length) return;
+  prog.flash[m[fl.i].id] = v; guardar();
+  if (!(fl.deck === 'repasar' && v === 'se')) fl.i++;
+  pintarFlash();
+}
+$('#flashSe').addEventListener('click', function () { marcarFlash('se'); });
+$('#flashRepasar').addEventListener('click', function () { marcarFlash('repasar'); });
+$$('#flashDeck button').forEach(function (b) {
+  b.addEventListener('click', function () {
+    fl.deck = b.dataset.deck; fl.i = 0;
+    $$('#flashDeck button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    pintarFlash();
+  });
+});
+
+/* ================= Visualizador ================= */
+var LOOPS = {
+  tri:{nombre:'Triangular (apuntes)', puntos:[[0.8,0,0],[0,0,0],[0,0.6,0]], nombres:['a','b','c']},
+  cubo:{nombre:'Aristas de un cubo de 0,4 m (apuntes)', puntos:[[0.4,0.4,0],[0.4,0,0],[0.4,0,0.4],[0,0.4,0.4]], nombres:['a','b','c','d']},
+  cuadrada:{nombre:'Cuadrada en el plano xy', puntos:[[0,0,0],[0.5,0,0],[0.5,0.5,0],[0,0.5,0]], nombres:['a','b','c','d']}
+};
+var viz = {
+  modo:'carga',
+  carga:{q:2e-6, v:[0,4e4,0], B:[0.02*Math.cos(Math.PI/6), 0.01, 0]},
+  cable:{q:2, v:[-0.01,0,0], B:[0.02*Math.cos(Math.PI/6), 0.01, 0]},
+  espira:{loop:'tri', I:5, B:[0,3,0]},
+  campo:{q:7e-6, v:[4e4,0,0], P:[0,1,1]}
+};
+var cam = {yaw:-35*Math.PI/180, pitch:20*Math.PI/180};
+function editStr(x) {
+  if (!x) return '0';
+  var a = Math.abs(x), s;
+  if (a >= 1e4 || a < 1e-3) {
+    var e = Math.floor(Math.log10(a)), m = Number((x/Math.pow(10, e)).toPrecision(4));
+    if (Math.abs(m) >= 10) { m = m/10; e++; }
+    s = String(m) + 'e' + e;
+  } else s = String(Number(x.toPrecision(4)));
+  return s.replace('.', ',');
+}
+function campoInput(path, val, lab) {
+  return '<label>' + lab + '<input class="field" type="text" inputmode="decimal" autocomplete="off" id="in-' + path.replace(/\./g, '-') +
+    '" data-path="' + path + '" value="' + esc(editStr(val)) + '"></label>';
+}
+function grupoVector(path, titulo, color, vec, unidad, rapidos) {
+  var h = '<div class="ctrl-group"><div class="ctrl-label"><span><span class="sw" style="background:var(' + color + ')"></span>' + titulo +
+    ' <span class="muted small">[' + unidad + ']</span></span></div><div class="comp">' +
+    campoInput(path + '.0', vec[0], 'x · î') + campoInput(path + '.1', vec[1], 'y · ĵ') + campoInput(path + '.2', vec[2], 'z · k̂') + '</div>';
+  if (rapidos) {
+    h += '<div class="quick" aria-label="Dirección rápida">' + AXES.map(function (a) {
+      return '<button type="button" data-quick="' + path + '" data-dir="' + a.v.join(',') + '" title="Apuntar en ' + a.n + '">' + a.n + '</button>';
+    }).join('') + '</div>';
+  }
+  return h + '</div>';
+}
+function getPath(path) { var p = path.split('.'), o = viz; for (var i = 0; i < p.length - 1; i++) o = o[p[i]]; return {o:o, k:p[p.length - 1]}; }
+
+function pintarControles() {
+  var m = viz.modo, d = viz[m], h = '';
+  if (m === 'carga') {
+    h += '<div class="ctrl-group"><div class="ctrl-label"><span>Carga q <span class="muted small">[C]</span></span></div>' +
+      '<div class="comp" style="grid-template-columns:minmax(0,1fr) auto">' + campoInput('carga.q', d.q, 'Valor (usa − para negativa)') +
+      '<div class="quick" style="align-self:end"><button type="button" data-signo="1">+q</button><button type="button" data-signo="-1">−q</button></div></div></div>';
+    h += grupoVector('carga.v', 'Velocidad <span class="vec">v</span>', '--vcol', d.v, 'm/s', true);
+    h += grupoVector('carga.B', 'Campo <span class="vec">B</span>', '--bcol', d.B, 'T', true);
+  } else if (m === 'cable') {
+    h += '<div class="ctrl-group"><div class="ctrl-label"><span>Corriente I <span class="muted small">[A]</span></span></div><div class="comp" style="grid-template-columns:minmax(0,1fr)">' + campoInput('cable.q', d.q, 'Valor') + '</div></div>';
+    h += grupoVector('cable.v', 'Cable <span class="vec">ℓ</span> (sentido de la corriente)', '--vcol', d.v, 'm', true);
+    h += grupoVector('cable.B', 'Campo <span class="vec">B</span>', '--bcol', d.B, 'T', true);
+  } else if (m === 'espira') {
+    var opts = Object.keys(LOOPS).map(function (k) { return '<option value="' + k + '"' + (d.loop === k ? ' selected' : '') + '>' + LOOPS[k].nombre + '</option>'; }).join('');
+    if (d.custom) opts += '<option value="custom"' + (d.loop === 'custom' ? ' selected' : '') + '>Del ejercicio de práctica</option>';
+    h += '<div class="ctrl-group"><label class="ctrl-label" for="loopSel">Forma de la espira</label><select class="field" id="loopSel">' + opts + '</select></div>';
+    h += '<div class="ctrl-group"><div class="ctrl-label"><span>Corriente I <span class="muted small">[A]</span></span></div><div class="comp" style="grid-template-columns:minmax(0,1fr)">' + campoInput('espira.I', d.I, 'Sentido: a → b → c → …') + '</div></div>';
+    h += grupoVector('espira.B', 'Campo uniforme <span class="vec">B</span>', '--bcol', d.B, 'T', true);
+  } else {
+    h += '<div class="ctrl-group"><div class="ctrl-label"><span>Carga q <span class="muted small">[C]</span></span></div>' +
+      '<div class="comp" style="grid-template-columns:minmax(0,1fr) auto">' + campoInput('campo.q', d.q, 'Valor') +
+      '<div class="quick" style="align-self:end"><button type="button" data-signo="1">+q</button><button type="button" data-signo="-1">−q</button></div></div></div>';
+    h += grupoVector('campo.v', 'Velocidad <span class="vec">v</span>', '--vcol', d.v, 'm/s', true);
+    h += grupoVector('campo.P', 'Punto P', '--rcol', d.P, 'm', false);
+  }
+  h += '<div class="result" id="vizResult" aria-live="polite"></div>';
+  var c = $('#controls');
+  c.innerHTML = h;
+  $$('input[data-path]', c).forEach(function (inp) {
+    inp.addEventListener('input', function () {
+      var val = parseNum(inp.value), g = getPath(inp.dataset.path);
+      if (isNaN(val)) { inp.classList.add('invalid'); return; }
+      inp.classList.remove('invalid');
+      g.o[g.k] = val;
+      actualizarViz();
+    });
+  });
+  $$('button[data-quick]', c).forEach(function (b) {
+    b.addEventListener('click', function () {
+      var path = b.dataset.quick, g = getPath(path), cur = g.o[g.k], mag = norm(cur) || 1;
+      var dir = b.dataset.dir.split(',').map(Number);
+      g.o[g.k] = dir.map(function (x) { return x*mag; });
+      [0, 1, 2].forEach(function (i) { var el = $('#in-' + path.replace(/\./g, '-') + '-' + i); if (el) { el.value = editStr(g.o[g.k][i]); el.classList.remove('invalid'); } });
+      actualizarViz();
+    });
+  });
+  $$('button[data-signo]', c).forEach(function (b) {
+    b.addEventListener('click', function () {
+      var d2 = viz[viz.modo]; d2.q = Math.abs(d2.q || 1e-6) * Number(b.dataset.signo);
+      $('#in-' + viz.modo + '-q').value = editStr(d2.q);
+      actualizarViz();
+    });
+  });
+  var sel = $('#loopSel', c);
+  if (sel) sel.addEventListener('change', function () { viz.espira.loop = sel.value; actualizarViz(); });
+  actualizarViz();
+}
+function loopActual() { return viz.espira.loop === 'custom' ? viz.espira.custom : LOOPS[viz.espira.loop]; }
+
+function resultadoViz() {
+  var m = viz.modo, d = viz[m], h = '';
+  if (m === 'carga' || m === 'cable') {
+    var vxb = cross(d.v, d.B), F = scale(vxb, d.q), th = angleDeg(d.v, d.B);
+    var nv = m === 'carga' ? '<span class="vec">v</span>' : '<span class="vec">ℓ</span>';
+    var pre = m === 'carga' ? 'q' : 'I';
+    h += '<span class="eyebrow">Resultado</span>';
+    h += '<div><span class="vec">F</span> = ' + pre + ' ' + nv + ' × <span class="vec">B</span></div>';
+    h += '<div class="big">' + vecStr(F) + ' N</div>';
+    h += '<table><tr><td>' + nv + ' × <span class="vec">B</span></td><td>' + vecStr(vxb) + '</td></tr>' +
+      '<tr><td>|F|</td><td>' + fmt(norm(F)) + ' N</td></tr>' +
+      '<tr><td>θ entre ' + nv + ' y <span class="vec">B</span></td><td>' + fmt(th, 3) + '°  (sen θ = ' + fmt(Math.sin(th*Math.PI/180), 3) + ')</td></tr></table>';
+    if (norm(F) === 0) h += '<div class="small muted">' + (norm(d.v) && norm(d.B) && d.q ? nv + ' es paralelo a <span class="vec">B</span>: no hay fuerza magnética.' : 'Algún dato vale cero, así que no hay fuerza.') + '</div>';
+    else h += '<div class="small muted"><span class="vec">F</span> es perpendicular a ' + nv + ' y a <span class="vec">B</span>.' + (m === 'carga' && d.q < 0 ? ' Como q es negativa, apunta al lado contrario de ' + nv + ' × <span class="vec">B</span>.' : '') + '</div>';
+  } else if (m === 'espira') {
+    var L = loopActual(), n = L.puntos.length, tot = [0,0,0], rows = '';
+    for (var i = 0; i < n; i++) {
+      var a = L.puntos[i], b = L.puntos[(i + 1) % n], l = sub(b, a), Fi = scale(cross(l, d.B), d.I);
+      tot = add(tot, Fi);
+      rows += '<tr><td>' + L.nombres[i] + L.nombres[(i + 1) % n] + '</td><td>ℓ = ' + vecStr(l) + '<br>F = ' + vecStr(Fi.map(clean)) + '</td></tr>';
+    }
+    tot = tot.map(function (x) { return Math.abs(x) < 1e-12 ? 0 : x; });
+    h += '<span class="eyebrow">Fuerza en cada segmento (N)</span><table>' + rows + '</table>';
+    h += '<div class="big">F total = ' + vecStr(tot) + ' N</div><div class="small muted">Con un campo uniforme, la suma siempre es cero.</div>';
+  } else {
+    var r = d.P, rn = norm(r);
+    if (!rn) { h = '<span class="eyebrow">Resultado</span><div class="small">El punto P no puede estar sobre la carga (r = 0).</div>'; }
+    else {
+      var rh = scale(r, 1/rn), Bv = scale(cross(d.v, rh), MU0_4PI*d.q/(rn*rn));
+      h += '<span class="eyebrow">Resultado</span><div><span class="vec">B</span> = (μ₀/4π) q <span class="vec">v</span> × r̂ / r²</div>';
+      h += '<div class="big">' + vecStr(Bv) + ' T</div>';
+      h += '<table><tr><td>r</td><td>' + fmt(rn, 4) + ' m</td></tr><tr><td>r̂</td><td>' + vecStr(rh) + '</td></tr><tr><td>|B|</td><td>' + fmt(norm(Bv)) + ' T</td></tr></table>';
+      h += '<div class="small muted">Las flechas tenues muestran cómo el campo rodea la línea de movimiento de la carga.</div>';
+    }
+  }
+  return h;
+}
+function pintarLeyenda() {
+  var m = viz.modo, items;
+  if (m === 'carga') items = [['--vcol', 'v velocidad'], ['--bcol', 'B campo'], ['--fcol', 'F fuerza']];
+  else if (m === 'cable') items = [['--vcol', 'ℓ cable'], ['--bcol', 'B campo'], ['--fcol', 'F fuerza']];
+  else if (m === 'espira') items = [['--vcol', 'corriente'], ['--bcol', 'B uniforme'], ['--fcol', 'F por segmento']];
+  else items = [['--vcol', 'v velocidad'], ['--rcol', 'r posición'], ['--bcol', 'B en P']];
+  $('#legend').innerHTML = items.map(function (it) { return '<span><i style="background:var(' + it[0] + ')"></i>' + it[1] + '</span>'; }).join('');
+}
+function actualizarViz() { $('#vizResult').innerHTML = resultadoViz(); dibujar(); }
+$$('#modeSeg button').forEach(function (b) {
+  b.addEventListener('click', function () { cambiarModo(b.dataset.mode); });
+});
+function cambiarModo(m) {
+  viz.modo = m;
+  $$('#modeSeg button').forEach(function (x) { x.setAttribute('aria-pressed', String(x.dataset.mode === m)); });
+  pintarLeyenda(); pintarControles();
+}
+
+/* --- Canvas --- */
+var canvas = $('#canvas'), ctx = canvas.getContext('2d'), W = 0, H = 0, DPR = 1;
+function ajustarCanvas() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var w = canvas.clientWidth, h = canvas.clientHeight;
+  if (!w || !h) return;
+  if (w !== W || h !== H || canvas.width !== Math.round(w*DPR)) {
+    W = w; H = h; canvas.width = Math.round(w*DPR); canvas.height = Math.round(h*DPR);
+  }
+}
+if (window.ResizeObserver) new ResizeObserver(function () { ajustarCanvas(); dibujar(); }).observe(canvas);
+function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+var S = 60, CX = 0, CY = 0;
+function P(p) {
+  var cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  var x = p[0]*cy + p[2]*sy, z = -p[0]*sy + p[2]*cy, y = p[1];
+  var y2 = y*cp - z*sp, z2 = y*sp + z*cp;
+  return {x:CX + x*S, y:CY - y2*S, z:z2};
+}
+function unit(v) { var n = norm(v); return n ? scale(v, 1/n) : [0,0,0]; }
+function flecha(p0, p1, color, w, label, alpha) {
+  var a = P(p0), b = P(p1), dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy);
+  ctx.save(); ctx.globalAlpha = alpha == null ? 1 : alpha; ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round';
+  if (L < 6) {
+    /* El vector apunta hacia el observador o se aleja: símbolo de punto o cruz */
+    var toward = (b.z - a.z) > 0;
+    ctx.beginPath(); ctx.arc(a.x, a.y, 9, 0, Math.PI*2); ctx.lineWidth = 2; ctx.stroke();
+    if (toward) { ctx.beginPath(); ctx.arc(a.x, a.y, 2.6, 0, Math.PI*2); ctx.fill(); }
+    else { ctx.beginPath(); ctx.moveTo(a.x - 5, a.y - 5); ctx.lineTo(a.x + 5, a.y + 5); ctx.moveTo(a.x + 5, a.y - 5); ctx.lineTo(a.x - 5, a.y + 5); ctx.stroke(); }
+    if (label) { ctx.font = '600 15px "STIX Two Text", serif'; ctx.fillText(label, a.x + 13, a.y - 10); }
+    ctx.restore(); return;
+  }
+  var ux = dx/L, uy = dy/L, hs = Math.min(13, L*0.4) + w;
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x - ux*hs*0.7, b.y - uy*hs*0.7); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x - ux*hs - uy*hs*0.45, b.y - uy*hs + ux*hs*0.45); ctx.lineTo(b.x - ux*hs + uy*hs*0.45, b.y - uy*hs - ux*hs*0.45); ctx.closePath(); ctx.fill();
+  if (label) {
+    ctx.font = 'italic 600 17px "STIX Two Text", serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, b.x + ux*16, b.y + uy*16);
+  }
+  ctx.restore();
+}
+function linea(p0, p1, color, w, dash, alpha) {
+  var a = P(p0), b = P(p1);
+  ctx.save(); ctx.globalAlpha = alpha == null ? 1 : alpha; ctx.strokeStyle = color; ctx.lineWidth = w; if (dash) ctx.setLineDash(dash);
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.restore();
+}
+function texto(p, s, color, font, dx, dy) {
+  var a = P(p); ctx.save(); ctx.fillStyle = color; ctx.font = font || '13px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(s, a.x + (dx || 0), a.y + (dy || 0)); ctx.restore();
+}
+function ejes(col, AX) {
+  var nombres = ['x', 'y', 'z'];
+  for (var i = 0; i < 3; i++) {
+    var e = [0,0,0], n = [0,0,0]; e[i] = AX; n[i] = -AX*0.55;
+    linea([0,0,0], n, col, 1, [4, 4], 0.6);
+    var a = P([0,0,0]), b = P(e);
+    if (Math.hypot(b.x - a.x, b.y - a.y) < 10) {
+      ctx.save(); ctx.strokeStyle = col; ctx.fillStyle = col; ctx.globalAlpha = .8; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(a.x, a.y, 6, 0, Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.arc(a.x, a.y, 1.8, 0, Math.PI*2); ctx.fill();
+      ctx.font = 'italic 14px "STIX Two Text", serif'; ctx.fillText(nombres[i] + ' (hacia ti)', a.x + 10, a.y + 18); ctx.restore();
+      continue;
+    }
+    flecha([0,0,0], e, col, 1.2, null, 0.8);
+    texto(e, nombres[i], col, 'italic 16px "STIX Two Text", serif', (b.x - a.x) > 0 ? 10 : -10, -10);
+  }
+}
+function dibujar() {
+  if (!W || !H || $('#view-visualizador').hidden) return;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  S = Math.min(W, H)/5.0; CX = W/2; CY = H/2 + (W < 520 ? 0 : 10);
+  var muted = css('--muted'), vcol = css('--vcol'), bcol = css('--bcol'), fcol = css('--fcol'), rcol = css('--rcol'), ink = css('--ink');
+  var m = viz.modo, d = viz[m], items = [];
+  function add3(z, fn) { items.push({z:z, fn:fn}); }
+  function zOf(p) { return P(p).z; }
+  ejes(muted, 2);
+
+  if (m === 'carga' || m === 'cable') {
+    var Lv = 1.55, vh = unit(d.v), bh = unit(d.B), vxb = cross(vh, bh), sgn = m === 'carga' ? (d.q < 0 ? -1 : 1) : (d.q < 0 ? -1 : 1);
+    var Fd = scale(vxb, Lv*sgn);
+    if (norm(vh) && norm(bh) && norm(vxb) > 1e-6) {
+      var k = 0.6;
+      ctx.save(); ctx.globalAlpha = 0.13; ctx.fillStyle = fcol; ctx.beginPath();
+      [[0,0,0], scale(vh, Lv*k), add(scale(vh, Lv*k), scale(bh, Lv*k)), scale(bh, Lv*k)].forEach(function (p, i) { var q = P(p); if (i) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); });
+      ctx.closePath(); ctx.fill(); ctx.restore();
+      /* arco del ángulo */
+      ctx.save(); ctx.strokeStyle = muted; ctx.lineWidth = 1.2; ctx.beginPath();
+      for (var t = 0; t <= 24; t++) { var dir = unit(add(scale(vh, 1 - t/24), scale(bh, t/24))); var q = P(scale(dir, 0.42)); if (t) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); }
+      ctx.stroke(); ctx.restore();
+      texto(scale(unit(add(vh, bh)), 0.6), 'θ', muted, 'italic 15px "STIX Two Text", serif');
+    }
+    if (norm(vh)) add3(zOf(scale(vh, Lv/2)), function () { flecha([0,0,0], scale(vh, Lv), vcol, 3, m === 'carga' ? 'v' : 'ℓ'); });
+    if (norm(bh)) add3(zOf(scale(bh, Lv/2)), function () { flecha([0,0,0], scale(bh, Lv), bcol, 3, 'B'); });
+    if (norm(Fd) > 0.02) add3(zOf(scale(Fd, 0.5)), function () { flecha([0,0,0], Fd, fcol, 3.5, 'F'); });
+    items.sort(function (a, b) { return a.z - b.z; }).forEach(function (it) { it.fn(); });
+    if (m === 'carga') {
+      var o = P([0,0,0]);
+      ctx.save(); ctx.fillStyle = css('--surface'); ctx.strokeStyle = ink; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(o.x, o.y, 10, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = ink; ctx.font = '600 15px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(d.q < 0 ? '−' : '+', o.x, o.y + 0.5); ctx.restore();
+    }
+    if (norm(vh) && norm(bh) && norm(vxb) <= 1e-6) {
+      ctx.save(); ctx.fillStyle = fcol; ctx.font = '600 14px "IBM Plex Sans", sans-serif'; ctx.fillText('F = 0 (paralelos)', 14, 44); ctx.restore();
+    }
+  } else if (m === 'espira') {
+    var Lp = loopActual(), pts = Lp.puntos, n = pts.length, ext = 0;
+    pts.forEach(function (p) { ext = Math.max(ext, Math.abs(p[0]), Math.abs(p[1]), Math.abs(p[2])); });
+    var ks = 1.6/(ext || 1), sp = pts.map(function (p) { return scale(p, ks); });
+    var bh2 = unit(d.B);
+    if (norm(bh2)) {
+      /* líneas de campo uniformes */
+      var u1 = unit(Math.abs(bh2[0]) < 0.9 ? cross(bh2, [1,0,0]) : cross(bh2, [0,1,0])), u2 = cross(bh2, u1);
+      for (var i1 = -1; i1 <= 1; i1++) for (var i2 = -1; i2 <= 1; i2++) {
+        var base = add(scale(u1, i1*1.1), scale(u2, i2*1.1));
+        var c0 = add(base, scale(bh2, -1.1)), c1 = add(base, scale(bh2, 1.1));
+        add3(zOf(base) - 10, (function (a, b) { return function () { flecha(a, b, bcol, 1.4, null, 0.32); }; })(c0, c1));
+      }
+    }
+    var Fs = [], maxF = 0;
+    for (var s = 0; s < n; s++) { var l = sub(pts[(s + 1) % n], pts[s]), F = scale(cross(l, d.B), d.I); Fs.push(F); maxF = Math.max(maxF, norm(F)); }
+    for (var s2 = 0; s2 < n; s2++) {
+      (function (s) {
+        var a = sp[s], b = sp[(s + 1) % n], mid = scale(add(a, b), 0.5);
+        add3(zOf(mid), function () {
+          linea(a, b, vcol, 3);
+          var dirm = unit(sub(b, a));
+          flecha(add(mid, scale(dirm, -0.12)), add(mid, scale(dirm, 0.14)), vcol, 3, null);
+        });
+        if (maxF > 0 && norm(Fs[s]) > 1e-12) {
+          var tip = add(mid, scale(Fs[s], 0.9/maxF));
+          add3(zOf(tip) + 0.01, function () { flecha(mid, tip, fcol, 3, 'F' + Lp.nombres[s] + Lp.nombres[(s + 1) % n]); });
+        }
+      })(s2);
+    }
+    items.sort(function (a, b) { return a.z - b.z; }).forEach(function (it) { it.fn(); });
+    sp.forEach(function (p, i) {
+      var q = P(p); ctx.save(); ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(q.x, q.y, 3.5, 0, Math.PI*2); ctx.fill();
+      ctx.font = '600 14px "IBM Plex Sans", sans-serif'; ctx.fillText(Lp.nombres[i], q.x + 7, q.y - 7); ctx.restore();
+    });
+  } else {
+    var Pp = d.P, rn = norm(Pp);
+    if (rn) {
+      var kk = 1.55/rn, Ps = scale(Pp, kk), vh3 = unit(d.v);
+      var Bv = cross(d.v, unit(Pp)), bh3 = scale(unit(Bv), d.q < 0 ? -1 : 1);
+      /* anillo de campo alrededor del eje de movimiento */
+      if (norm(vh3)) {
+        var cen = scale(vh3, dot(Ps, vh3)), rad = sub(Ps, cen), rr = norm(rad);
+        if (rr > 0.05) {
+          var e1 = scale(rad, 1/rr), e2 = cross(vh3, e1);
+          ctx.save(); ctx.strokeStyle = bcol; ctx.globalAlpha = 0.28; ctx.lineWidth = 1.2; ctx.setLineDash([3, 4]); ctx.beginPath();
+          for (var t2 = 0; t2 <= 48; t2++) { var ang = t2/48*Math.PI*2; var q2 = P(add(cen, add(scale(e1, rr*Math.cos(ang)), scale(e2, rr*Math.sin(ang))))); if (t2) ctx.lineTo(q2.x, q2.y); else ctx.moveTo(q2.x, q2.y); }
+          ctx.stroke(); ctx.restore();
+          for (var j = 1; j < 8; j++) {
+            (function (ang) {
+              var rp = add(scale(e1, Math.cos(ang)), scale(e2, Math.sin(ang))), p0 = add(cen, scale(rp, rr));
+              var tg = scale(cross(vh3, rp), d.q < 0 ? -1 : 1);
+              add3(zOf(p0), function () { flecha(p0, add(p0, scale(tg, 0.32)), bcol, 1.6, null, 0.4); });
+            })(j/8*Math.PI*2);
+          }
+        }
+      }
+      add3(zOf(scale(Ps, 0.5)), function () { linea([0,0,0], Ps, rcol, 1.8, [6, 5]); texto(scale(Ps, 0.5), 'r', rcol, 'italic 600 16px "STIX Two Text", serif', 10, -8); });
+      if (norm(vh3)) add3(zOf(scale(vh3, 0.6)), function () { flecha([0,0,0], scale(vh3, 1.2), vcol, 3, 'v'); });
+      if (norm(Bv) > 0) add3(zOf(add(Ps, scale(bh3, 0.5))), function () { flecha(Ps, add(Ps, scale(bh3, 0.95)), bcol, 3.5, 'B'); });
+      items.sort(function (a, b) { return a.z - b.z; }).forEach(function (it) { it.fn(); });
+      var o2 = P([0,0,0]), pp = P(Ps);
+      ctx.save(); ctx.fillStyle = css('--surface'); ctx.strokeStyle = ink; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(o2.x, o2.y, 10, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = ink; ctx.font = '600 15px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(d.q < 0 ? '−' : '+', o2.x, o2.y + 0.5);
+      ctx.fillStyle = rcol; ctx.beginPath(); ctx.arc(pp.x, pp.y, 4.5, 0, Math.PI*2); ctx.fill();
+      ctx.font = '600 15px "IBM Plex Sans", sans-serif'; ctx.fillText('P', pp.x - 12, pp.y - 12); ctx.restore();
+    }
+  }
+}
+/* Girar la escena */
+var drag = null;
+canvas.addEventListener('pointerdown', function (e) { drag = {x:e.clientX, y:e.clientY}; canvas.setPointerCapture(e.pointerId); $('#vizHint').hidden = true; });
+canvas.addEventListener('pointermove', function (e) {
+  if (!drag) return;
+  cam.yaw += (e.clientX - drag.x)*0.01; cam.pitch += (e.clientY - drag.y)*0.01;
+  cam.pitch = Math.max(-1.45, Math.min(1.45, cam.pitch));
+  drag = {x:e.clientX, y:e.clientY}; dibujar();
+});
+['pointerup', 'pointercancel'].forEach(function (ev) { canvas.addEventListener(ev, function () { drag = null; }); });
+$('#viewIso').addEventListener('click', function () { cam.yaw = -35*Math.PI/180; cam.pitch = 20*Math.PI/180; dibujar(); });
+$('#viewXY').addEventListener('click', function () { cam.yaw = 0; cam.pitch = 0; dibujar(); });
+try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', dibujar); } catch (e) {}
+new MutationObserver(dibujar).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(dibujar);
+
+function cargarPreset(p) {
+  if (!p) return;
+  if (p.modo === 'espira') {
+    var match = null;
+    Object.keys(LOOPS).forEach(function (k) { if (JSON.stringify(LOOPS[k].puntos) === JSON.stringify(p.puntos)) match = k; });
+    if (match) viz.espira.loop = match;
+    else { viz.espira.custom = {nombre:'Del ejercicio', puntos:p.puntos, nombres:p.nombres}; viz.espira.loop = 'custom'; }
+    viz.espira.I = p.I; viz.espira.B = p.B.slice();
+  } else if (p.modo === 'campo') {
+    viz.campo = {q:p.q, v:p.v.slice(), P:p.P.slice()};
+  } else {
+    viz[p.modo] = {q:p.q, v:p.v.slice(), B:p.B.slice()};
+  }
+  cambiarModo(p.modo);
+  ir('visualizador');
+}
+
+/* ================= Resueltos ================= */
+var rs = {filtro:'todos', paso:{}};
+function pintarFiltros(sel, estado, onChange) {
+  var opts = [{id:'todos', nombre:'Todos'}].concat(TEMAS);
+  $(sel).innerHTML = opts.map(function (t) { return '<button type="button" class="pill" data-f="' + t.id + '" aria-pressed="' + (estado.filtro === t.id) + '">' + esc(t.nombre) + '</button>'; }).join('');
+  $$(sel + ' button').forEach(function (b) { b.addEventListener('click', function () { estado.filtro = b.dataset.f; pintarFiltros(sel, estado, onChange); onChange(); }); });
+}
+function pintarResueltos() {
+  var lista = RESUELTOS.filter(function (r) { return rs.filtro === 'todos' || r.tema === rs.filtro; });
+  $('#solvedList').innerHTML = lista.map(function (r) {
+    var k = rs.paso[r.id] || 0, total = r.pasos.length, fin = k > total;
+    var badge = r.pendiente ? '<span class="badge pend">Enunciado incompleto</span>' : prog.resueltos[r.id] ? '<span class="badge done">Revisado</span>' : '<span class="badge">' + total + ' pasos</span>';
+    var h = '<article class="panel solved" id="sol-' + r.id + '"><div class="solved-head"><div class="meta"><span class="eyebrow">' + esc(temaNombre(r.tema)) + '</span><h3>' + r.titulo + '</h3></div>' + badge + '</div>';
+    h += '<p class="statement">' + r.enunciado + '</p>';
+    if (r.pendiente) h += '<div class="note">' + r.pendiente + '</div>';
+    if (k > 0) h += '<ol class="steps">' + r.pasos.slice(0, k).map(function (p) { return '<li><div>' + p + '</div></li>'; }).join('') + '</ol>';
+    if (fin) {
+      h += '<div class="answer">' + r.resultado + '</div>';
+      if (r.nota) h += '<div class="note"><b>Ojo con los apuntes.</b> ' + r.nota + '</div>';
+    }
+    h += '<div class="row">';
+    if (!fin) h += '<button class="btn primary" type="button" data-act="next" data-id="' + r.id + '">' + (k === 0 ? 'Empezar' : k < total ? 'Siguiente paso' : 'Ver resultado') + '</button>' +
+      '<button class="btn" type="button" data-act="all" data-id="' + r.id + '">Mostrar todo</button>';
+    else h += '<button class="btn" type="button" data-act="reset" data-id="' + r.id + '">Ocultar solución</button>';
+    if (r.preset) h += '<button class="btn ghost" type="button" data-act="viz" data-id="' + r.id + '">Ver en el visualizador →</button>';
+    h += '</div></article>';
+    return h;
+  }).join('');
+  $$('#solvedList button[data-act]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var r = RESUELTOS.filter(function (x) { return x.id === b.dataset.id; })[0], k = rs.paso[r.id] || 0;
+      if (b.dataset.act === 'next') rs.paso[r.id] = k + 1;
+      else if (b.dataset.act === 'all') rs.paso[r.id] = r.pasos.length + 1;
+      else if (b.dataset.act === 'reset') rs.paso[r.id] = 0;
+      else if (b.dataset.act === 'viz') { cargarPreset(r.preset); return; }
+      if ((rs.paso[r.id] || 0) > r.pasos.length && !r.pendiente && !prog.resueltos[r.id]) { prog.resueltos[r.id] = true; guardar(); }
+      pintarResueltos();
+      var el = $('#sol-' + r.id); if (el && b.dataset.act === 'reset') el.scrollIntoView({block:'nearest'});
+    });
+  });
+}
+
+/* ================= Práctica ================= */
+var pr = {gid:'direccion', problem:null, contado:false, sel:null, fb:null, revelado:0, vals:['', '', '']};
+function genPorId(id) { for (var i = 0; i < GENERADORES.length; i++) if (GENERADORES[i].id === id) return GENERADORES[i]; return GENERADORES[0]; }
+function pintarTipos() {
+  var h = '';
+  TEMAS.forEach(function (t) {
+    var gs = GENERADORES.filter(function (g) { return g.tema === t.id; });
+    if (!gs.length) return;
+    h += '<div><div class="tema-name">' + esc(t.nombre) + '</div>' + gs.map(function (g) {
+      var s = prog.practica[g.id] || {i:0, a:0}, pct = s.i ? Math.round(100*s.a/s.i) : 0;
+      return '<button type="button" class="type-btn" data-g="' + g.id + '" aria-pressed="' + (pr.gid === g.id) + '"><span class="tn">' + g.nombre + '</span>' +
+        '<span class="ts"><span class="bar"><i style="width:' + pct + '%"></i></span><span class="mono">' + (s.i ? s.a + '/' + s.i : 'sin intentos') + '</span></span></button>';
+    }).join('') + '</div>';
+  });
+  $('#typeList').innerHTML = h;
+  $$('#typeList .type-btn').forEach(function (b) { b.addEventListener('click', function () { nuevoProblema(b.dataset.g); }); });
+}
+function nuevoProblema(gid) {
+  pr.gid = gid || pr.gid;
+  var seed = (Date.now() ^ Math.floor(Math.random()*1e9)) >>> 0;
+  pr.problem = genPorId(pr.gid).gen(rng(seed));
+  pr.contado = false; pr.sel = null; pr.fb = null; pr.revelado = 0; pr.vals = ['', '', ''];
+  pintarTipos(); pintarProblema();
+}
+function leerValores() { pr.vals = [0, 1, 2].map(function (i) { var el = $('#ans' + i); return el ? el.value : pr.vals[i]; }); }
+function pintarProblema() {
+  var g = genPorId(pr.gid), p = pr.problem, h = '';
+  h += '<div class="row" style="justify-content:space-between"><div style="display:flex; flex-direction:column; gap:2px"><span class="eyebrow">' + esc(temaNombre(g.tema)) + '</span><h3>' + g.nombre + '</h3></div>' +
+    '<button class="btn" type="button" id="btnOtro">Otro problema</button></div>';
+  h += '<p class="statement">' + p.enunciado + '</p>';
+  if (g.tipo === 'mc') {
+    h += '<div class="opts">' + p.opciones.map(function (o, i) {
+      var cls = 'opt';
+      if (pr.fb) { if (o === p.correcta && pr.fb.ok) cls += ' right'; else if (o === pr.sel && !pr.fb.ok) cls += ' wrong'; }
+      return '<button type="button" class="' + cls + '" data-o="' + i + '" aria-pressed="' + (pr.sel === o) + '">' + o + '</button>';
+    }).join('') + '</div>';
+  } else if (g.tipo === 'escalar') {
+    h += '<div class="answer-row one"><label>|F|<input class="field" id="ans0" type="text" inputmode="decimal" autocomplete="off" placeholder="ej. 5,2e-4" value="' + esc(pr.vals[0]) + '"></label><span class="unit">' + p.unidad + '</span></div>';
+  } else {
+    var nom = p.unidad === 'T' ? 'B' : 'F';
+    h += '<div class="answer-row">' + ['x', 'y', 'z'].map(function (c, i) {
+      return '<label>' + nom + '<sub>' + c + '</sub><input class="field" id="ans' + i + '" type="text" inputmode="decimal" autocomplete="off" placeholder="0" value="' + esc(pr.vals[i]) + '"></label>';
+    }).join('') + '<span class="unit">' + p.unidad + '</span></div>';
+    h += '<p class="small muted" style="margin:-6px 0 0">Escribe en notación científica: −1,39e-3 o −1,39x10^-3. Deja en blanco las componentes que valen cero.</p>';
+  }
+  if (pr.fb) h += '<div class="feedback ' + (pr.fb.ok ? 'ok' : 'bad') + '">' + (pr.fb.ok ? 'Correcto.' : pr.fb.parse ? 'No pude leer tu respuesta.' : 'Todavía no.') + (pr.fb.msg ? '<span>' + pr.fb.msg + '</span>' : '') + '</div>';
+  h += '<div class="row"><button class="btn primary" type="button" id="btnComprobar">Comprobar</button>';
+  if (!pr.fb || !pr.fb.ok) h += '<button class="btn" type="button" id="btnPista"' + (pr.revelado >= p.pasos.length ? ' disabled' : '') + '>' + (pr.revelado ? 'Otro paso' : 'Pista') + '</button>' +
+    '<button class="btn ghost" type="button" id="btnSol">Ver solución</button>';
+  if (p.preset) h += '<button class="btn ghost" type="button" id="btnViz">Ver en el visualizador →</button>';
+  h += '</div>';
+  var mostrar = pr.fb && (pr.fb.ok || pr.revelado >= p.pasos.length) ? p.pasos.length : pr.revelado;
+  if (mostrar > 0) {
+    h += '<div style="display:flex; flex-direction:column; gap:8px"><span class="eyebrow">Solución paso a paso</span><ol class="steps">' + p.pasos.slice(0, mostrar).map(function (s) { return '<li><div>' + s + '</div></li>'; }).join('') + '</ol></div>';
+    if (mostrar >= p.pasos.length && g.tipo !== 'mc') h += '<div class="answer">' + (g.tipo === 'escalar' ? '|F| = ' + fmt(p.respuesta[0]) : (p.unidad === 'T' ? '<span class="vec">B</span>' : '<span class="vec">F</span>') + ' = ' + vecStr(p.respuesta)) + ' ' + p.unidad + '</div>';
+  }
+  var box = $('#problem');
+  box.innerHTML = h;
+  $('#btnOtro').addEventListener('click', function () { nuevoProblema(); });
+  $$('.opt', box).forEach(function (b) { b.addEventListener('click', function () { pr.sel = p.opciones[Number(b.dataset.o)]; pr.fb = null; pintarProblema(); }); });
+  $$('.field', box).forEach(function (inp) { inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') comprobar(); }); });
+  $('#btnComprobar').addEventListener('click', comprobar);
+  var bp = $('#btnPista'); if (bp) bp.addEventListener('click', function () { leerValores(); pr.revelado = Math.min(p.pasos.length, pr.revelado + 1); pintarProblema(); });
+  var bs = $('#btnSol'); if (bs) bs.addEventListener('click', function () {
+    leerValores(); pr.revelado = p.pasos.length;
+    if (!pr.contado) { registrar(false); pr.contado = true; }
+    pintarProblema();
+  });
+  var bv = $('#btnViz'); if (bv) bv.addEventListener('click', function () { cargarPreset(p.preset); });
+}
+function registrar(ok) {
+  var s = prog.practica[pr.gid] || {i:0, a:0};
+  s.i++; if (ok) s.a++;
+  prog.practica[pr.gid] = s;
+  if (ok) { prog.racha = (prog.racha || 0) + 1; prog.mejorRacha = Math.max(prog.mejorRacha || 0, prog.racha); }
+  else prog.racha = 0;
+  guardar(); pintarTipos();
+}
+function comprobar() {
+  var g = genPorId(pr.gid), p = pr.problem, res;
+  if (g.tipo === 'mc') {
+    if (!pr.sel) { pr.fb = {ok:false, msg:'Elige una opción primero.', parse:true}; pintarProblema(); return; }
+    res = {ok: pr.sel === p.correcta, msg:''};
+    if (!res.ok && pr.sel !== 'F = 0' && p.correcta !== 'F = 0' && pr.sel.slice(1) === p.correcta.slice(1)) res.msg = 'Tienes el eje correcto, pero el sentido opuesto. Revisa el signo de la carga y el orden del producto cruz.';
+  } else {
+    leerValores();
+    var n = g.tipo === 'escalar' ? 1 : 3, ans = [];
+    for (var i = 0; i < n; i++) {
+      var x = parseNum(pr.vals[i]);
+      if (isNaN(x)) { pr.fb = {ok:false, parse:true, msg:'Revisa «' + esc(pr.vals[i]) + '». Usa números como 0,02 o −1,39e-3.'}; pintarProblema(); return; }
+      ans.push(x);
+    }
+    if (n === 1 && String(pr.vals[0]).trim() === '') { pr.fb = {ok:false, parse:true, msg:'Escribe un valor.'}; pintarProblema(); return; }
+    res = corregirVector(ans, p.respuesta);
+  }
+  if (!pr.contado) { registrar(res.ok); pr.contado = true; }
+  pr.fb = res;
+  pintarProblema();
+}
+
+/* ================= Progreso ================= */
+var confirmando = false;
+function pintarProgreso() {
+  var t = totales(), nr = RESUELTOS.filter(function (r) { return !r.pendiente; }).length;
+  var vistos = RESUELTOS.filter(function (r) { return prog.resueltos[r.id]; }).length;
+  var sabe = FLASH.filter(function (c) { return prog.flash[c.id] === 'se'; }).length;
+  var stat = function (n, l, s) { return '<div class="panel stat"><span class="n">' + n + '</span><span>' + l + '</span>' + (s ? '<span class="small muted">' + s + '</span>' : '') + '</div>'; };
+  $('#stats').innerHTML =
+    stat(t.i, 'problemas intentados', t.i ? t.a + ' correctos al primer intento' : 'Empieza en Práctica') +
+    stat(t.i ? Math.round(100*t.a/t.i) + '%' : '—', 'de aciertos') +
+    stat(prog.racha || 0, 'racha actual', 'Mejor racha: ' + (prog.mejorRacha || 0)) +
+    stat(vistos + '/' + nr, 'ejemplos revisados') +
+    stat(sabe + '/' + FLASH.length, 'tarjetas dominadas');
+  var rows = '<tr><th>Tipo de problema</th><th>Tema</th><th>Aciertos</th><th>Dominio</th><th></th></tr>';
+  GENERADORES.forEach(function (g) {
+    var s = prog.practica[g.id] || {i:0, a:0}, pct = s.i ? Math.round(100*s.a/s.i) : 0;
+    rows += '<tr><td>' + g.nombre + '</td><td class="muted">' + esc(temaNombre(g.tema)) + '</td><td class="num">' + s.a + '/' + s.i + '</td>' +
+      '<td><span class="bar" style="display:block"><i style="width:' + pct + '%"></i></span></td>' +
+      '<td><button class="btn ghost" type="button" data-pg="' + g.id + '">Practicar</button></td></tr>';
+  });
+  $('#progTable').innerHTML = rows;
+  $$('#progTable button[data-pg]').forEach(function (b) { b.addEventListener('click', function () { nuevoProblema(b.dataset.pg); ir('practica'); }); });
+  var rz = $('#resetZone');
+  if (!confirmando) {
+    rz.innerHTML = '<button class="btn" type="button" id="btnReset">Borrar mi progreso</button>';
+    $('#btnReset').addEventListener('click', function () { confirmando = true; pintarProgreso(); });
+  } else {
+    rz.innerHTML = '<div class="confirm"><span>Se borrarán tus aciertos, rachas y tarjetas. No se puede deshacer.</span><button class="btn primary" type="button" id="btnResetSi">Sí, borrar</button><button class="btn" type="button" id="btnResetNo">Cancelar</button></div>';
+    $('#btnResetSi').addEventListener('click', function () { prog = progVacio(); confirmando = false; guardar(); pintarTodo(); });
+    $('#btnResetNo').addEventListener('click', function () { confirmando = false; pintarProgreso(); });
+  }
+  pintarEstadoGuardado();
+}
+
+function pintarTodo() {
+  pintarChip(); pintarFlash(); pintarResueltos(); pintarTipos();
+  if (pr.problem) pintarProblema();
+  if (!$('#view-progreso').hidden) pintarProgreso();
+}
+
+/* ================= Inicio ================= */
+pintarFormulas();
+pintarFiltros('#solvedFilters', rs, pintarResueltos);
+pintarLeyenda();
+pintarControles();
+pr.problem = genPorId(pr.gid).gen(rng(20261109));
+pintarTodo();
+pintarEstadoGuardado();
+mostrarVista();
+iniciarCuenta();
+})();
+
+</script>
+</body></html>
