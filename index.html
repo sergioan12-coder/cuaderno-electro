@@ -151,6 +151,9 @@ ol.steps li{counter-increment:paso; display:grid; grid-template-columns:28px min
 ol.steps li::before{content:counter(paso); font-family:var(--font-mono); font-size:.78rem; width:22px; height:22px; border-radius:50%; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--muted); margin-top:2px}
 ol.steps li > div{min-width:0}
 .answer{border-left:3px solid var(--fcol); padding:8px 12px; background:var(--surface-2); border-radius:0 8px 8px 0; font-weight:500}
+.fig{margin:0; overflow-x:auto}
+.fig svg{display:block; max-width:100%; height:auto}
+.note.tip{border-left-color:var(--bcol); background:var(--surface-2)}
 .note{border-left:3px solid var(--warn); background:var(--warn-bg); color:var(--ink); padding:8px 12px; border-radius:0 8px 8px 0; font-size:.92rem}
 
 /* Práctica */
@@ -297,8 +300,9 @@ ol.steps li > div{min-width:0}
     <div class="seg" id="modeSeg" role="group" aria-label="Modo">
       <button type="button" data-mode="carga" aria-pressed="true">Carga en movimiento</button>
       <button type="button" data-mode="cable" aria-pressed="false">Cable con corriente</button>
-      <button type="button" data-mode="espira" aria-pressed="false">Espira cerrada</button>
+      <button type="button" data-mode="espira" aria-pressed="false">Espira o cable doblado</button>
       <button type="button" data-mode="campo" aria-pressed="false">Campo de una carga</button>
+      <button type="button" data-mode="cablecampo" aria-pressed="false">Campo de un cable</button>
     </div>
     <div class="viz">
       <div class="stage">
@@ -836,6 +840,403 @@ var FLASH = [
   {id:'f16', a:'Unidad del campo magnético', b:'Tesla: 1 T = 1 N/(A·m)'}
 ];
 
+/* =====================================================================
+   Apuntes del 10 y 11 de noviembre: campo de cables, dos cargas,
+   fuerza entre cargas, cables doblados
+   ===================================================================== */
+TEMAS.push({id:'cable', nombre:'Campo de un cable con corriente', resumen:'El campo B que produce un cable corto o un cable largo'});
+
+function unitv(v) { var n = norm(v); return n ? scale(v, 1/n) : [0,0,0]; }
+function cm(x) { return fmt(x*100) + ' cm'; }
+function posCm(p) { return '(' + fmt(p[0]*100) + '; ' + fmt(p[1]*100) + ') cm'; }
+var LADO = {'+î':'hacia la derecha', '−î':'hacia la izquierda', '+ĵ':'hacia arriba', '−ĵ':'hacia abajo', '+k̂':'saliendo de la hoja', '−k̂':'entrando en la hoja'};
+var DONDE = {'+î':'a la derecha del cable', '−î':'a la izquierda del cable', '+ĵ':'arriba del cable', '−ĵ':'abajo del cable'};
+function signoTxt(q) { return q < 0 ? 'negativa' : 'positiva'; }
+
+/* --- Figuras SVG (coordenadas en cm, y hacia arriba) --- */
+function fig(cfg) {
+  var u = cfg.u || 26, pad = 30, x0 = cfg.x[0], x1 = cfg.x[1], y0 = cfg.y[0], y1 = cfg.y[1];
+  var W = Math.round((x1 - x0)*u + 2*pad), H = Math.round((y1 - y0)*u + 2*pad);
+  function X(x) { return pad + (x - x0)*u; }
+  function Y(y) { return pad + (y1 - y)*u; }
+  function n2(x) { return Math.round(x*10)/10; }
+  var COL = {v:'vcol', b:'bcol', f:'fcol', r:'rcol', m:'muted', i:'ink'};
+  function col(c) { return 'var(--' + (COL[c] || 'ink') + ')'; }
+  function head(xa, ya, xb, yb, c, s) {
+    var dx = xb - xa, dy = yb - ya, L = Math.hypot(dx, dy) || 1, ux = dx/L, uy = dy/L; s = s || 8;
+    return '<path d="M' + n2(xb) + ',' + n2(yb) + ' L' + n2(xb - ux*s - uy*s*0.5) + ',' + n2(yb - uy*s + ux*s*0.5) + ' L' + n2(xb - ux*s + uy*s*0.5) + ',' + n2(yb - uy*s - ux*s*0.5) + 'Z" style="fill:' + col(c) + '"/>';
+  }
+  function txt(x, y, s, c, anchor, math) {
+    return '<text x="' + n2(x) + '" y="' + n2(y) + '" text-anchor="' + (anchor || 'middle') + '" dominant-baseline="middle" style="fill:' + col(c || 'i') + '" font-size="' + (math ? 15 : 12.5) + '" font-family="' + (math ? 'STIX Two Text, serif' : 'IBM Plex Sans, sans-serif') + '"' + (math ? ' font-style="italic"' : '') + '>' + s + '</text>';
+  }
+  function line(a, b, c, w, dash) {
+    return '<line x1="' + n2(X(a[0])) + '" y1="' + n2(Y(a[1])) + '" x2="' + n2(X(b[0])) + '" y2="' + n2(Y(b[1])) + '" style="stroke:' + col(c) + '" stroke-width="' + w + '"' + (dash ? ' stroke-dasharray="5 4"' : '') + ' stroke-linecap="round"/>';
+  }
+  var out = [];
+  if (cfg.ejes) {
+    out.push(line([x0 + 0.2, 0], [x1 - 0.2, 0], 'm', 1.1), head(X(x1 - 0.6), Y(0), X(x1 - 0.2), Y(0), 'm', 7), txt(X(x1 - 0.2), Y(0) + 13, 'x', 'm', 'end', true));
+    out.push(line([0, y0 + 0.2], [0, y1 - 0.2], 'm', 1.1), head(X(0), Y(y1 - 0.6), X(0), Y(y1 - 0.2), 'm', 7), txt(X(0) - 10, Y(y1 - 0.2), 'y', 'm', 'end', true));
+  }
+  cfg.items.forEach(function (it) {
+    var t = it.t;
+    if (t === 'seg') {
+      out.push(line(it.a, it.b, it.c || 'v', it.w || 2.6));
+      var xa = X(it.a[0]), ya = Y(it.a[1]), xb = X(it.b[0]), yb = Y(it.b[1]), mx = (xa + xb)/2, my = (ya + yb)/2, L = Math.hypot(xb - xa, yb - ya) || 1;
+      out.push(head(xa, ya, mx + (xb - xa)/L*6, my + (yb - ya)/L*6, it.c || 'v', 10));
+      if (it.label) out.push(txt(mx + (it.lx || 0), my + (it.ly || 0), it.label, it.c || 'v', it.anchor, it.math));
+    } else if (t === 'flecha') {
+      out.push(line(it.a, it.b, it.c || 'v', 2.2), head(X(it.a[0]), Y(it.a[1]), X(it.b[0]), Y(it.b[1]), it.c || 'v', 9));
+      if (it.label) out.push(txt(X(it.b[0]) + (it.lx || 0), Y(it.b[1]) + (it.ly || 0), it.label, it.c || 'v', it.anchor || 'middle', true));
+    } else if (t === 'carga') {
+      out.push('<circle cx="' + n2(X(it.p[0])) + '" cy="' + n2(Y(it.p[1])) + '" r="9" style="fill:var(--surface);stroke:var(--ink)" stroke-width="1.5"/>');
+      out.push(txt(X(it.p[0]), Y(it.p[1]) + 0.5, it.s, 'i'));
+      if (it.label) out.push(txt(X(it.p[0]) + (it.lx || 0), Y(it.p[1]) + (it.ly || -18), it.label, 'i', it.anchor || 'middle'));
+    } else if (t === 'punto') {
+      out.push('<circle cx="' + n2(X(it.p[0])) + '" cy="' + n2(Y(it.p[1])) + '" r="3.6" style="fill:' + col(it.c || 'i') + '"/>');
+      if (it.label) out.push(txt(X(it.p[0]) + (it.lx || 0), Y(it.p[1]) + (it.ly || -12), it.label, it.c || 'i', it.anchor || 'middle'));
+    } else if (t === 'campos') {
+      it.pts.forEach(function (p) {
+        var x = X(p[0]), y = Y(p[1]);
+        if (it.tipo === 'dot') out.push('<circle cx="' + n2(x) + '" cy="' + n2(y) + '" r="2.6" style="fill:var(--bcol)"/>');
+        else out.push('<path d="M' + n2(x - 4.5) + ',' + n2(y - 4.5) + ' L' + n2(x + 4.5) + ',' + n2(y + 4.5) + ' M' + n2(x + 4.5) + ',' + n2(y - 4.5) + ' L' + n2(x - 4.5) + ',' + n2(y + 4.5) + '" style="stroke:var(--bcol)" stroke-width="1.6"/>');
+      });
+    } else if (t === 'linea') {
+      out.push(line(it.a, it.b, it.c || 'r', 1.6, true));
+      if (it.label) out.push(txt((X(it.a[0]) + X(it.b[0]))/2 + (it.lx || 0), (Y(it.a[1]) + Y(it.b[1]))/2 + (it.ly || 0), it.label, it.c || 'r', 'middle', true));
+    } else if (t === 'texto') {
+      out.push(txt(X(it.p[0]), Y(it.p[1]), it.s, it.c || 'm', it.anchor || 'middle', it.math));
+    }
+  });
+  return '<figure class="fig"><svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" role="img" aria-label="' + (cfg.alt || 'Figura del ejercicio') + '">' + out.join('') + '</svg></figure>';
+}
+function grilla(xs, ys) { var p = []; xs.forEach(function (x) { ys.forEach(function (y) { p.push([x, y]); }); }); return p; }
+
+/* --- Generadores nuevos --- */
+function genDosCargas(r) {
+  var a = randInt(r, 2, 9)/100*(r() < 0.5 ? -1 : 1), b = randInt(r, 2, 9)/100*(r() < 0.5 ? -1 : 1);
+  var cargas = [
+    {n:'₁', q:randInt(r, 1, 9)*(r() < 0.3 ? -1 : 1), p:[a,0,0], v:[0, randInt(r, 1, 9)*1e4*(r() < 0.5 ? -1 : 1), 0]},
+    {n:'₂', q:randInt(r, 1, 9)*(r() < 0.5 ? -1 : 1), p:[0,b,0], v:[randInt(r, 1, 9)*1e4*(r() < 0.5 ? -1 : 1), 0, 0]}
+  ];
+  var Bt = [0,0,0];
+  var pasos = [V('B') + ' = (μ₀/4π) · q ' + V('v') + ' × r̂ / r². Para cada carga, ' + V('r') + ' va desde la carga hasta el origen.'];
+  cargas.forEach(function (c) {
+    var rv = scale(c.p, -1), rn = norm(rv), rh = scale(rv, 1/rn), vm = norm(c.v), vh = unitv(c.v), dir = cross(vh, rh);
+    var Bi = scale(cross(c.v, rh), MU0_4PI*c.q*1e-6/(rn*rn));
+    Bt = add(Bt, Bi);
+    pasos.push('Carga q' + c.n + ': r̂ = ' + axisName(rh) + ', r = ' + cm(rn) + '. |B' + c.n + '| = 10⁻⁷ · (' + fmt(Math.abs(c.q)*1e-6) + ')(' + fmt(vm) + ') / (' + fmt(rn) + ')² = ' + fmt(norm(Bi)) + ' T. ' +
+      'Dirección: (' + axisName(vh) + ') × (' + axisName(rh) + ') = ' + axisName(dir) + (c.q < 0 ? '; q' + c.n + ' es negativa, así que se invierte' : '') + '. ' + V('B') + c.n + ' = ' + vecStr(Bi) + ' T.');
+  });
+  if (norm(Bt) < 0.05*Math.max.apply(null, cargas.map(function (c) { return Math.abs(c.q)*norm(c.v)/dot(c.p, c.p); }))*MU0_4PI*1e-6) return genDosCargas(r);
+  pasos.push('Suma los dos campos: ' + V('B') + ' = ' + vecStr(Bt.map(clean)) + ' T');
+  function desc(c) { return 'q' + c.n + ' = ' + fmt(c.q) + ' μC está en ' + posCm(c.p) + ' y se mueve a ' + fmt(norm(c.v)) + ' m/s ' + LADO[axisName(unitv(c.v))] + ' (' + axisName(unitv(c.v)) + ')'; }
+  return {
+    enunciado:desc(cargas[0]) + '. ' + desc(cargas[1]) + '. Halla el campo magnético total en el origen.',
+    respuesta:Bt.map(clean), unidad:'T', pasos:pasos, preset:null
+  };
+}
+
+function genEntreCargas(r) {
+  var a = randInt(r, 2, 8)/100*(r() < 0.5 ? -1 : 1), b = randInt(r, 2, 8)/100*(r() < 0.5 ? -1 : 1);
+  var q1 = randInt(r, 1, 9)*(r() < 0.3 ? -1 : 1), q2 = randInt(r, 1, 9)*(r() < 0.5 ? -1 : 1);
+  var v1 = [randInt(r, 1, 9)*1e4*(r() < 0.5 ? -1 : 1), 0, 0];
+  var v2 = r() < 0.5 ? [randInt(r, 1, 9)*1e4*(r() < 0.5 ? -1 : 1), 0, 0] : [0, randInt(r, 1, 9)*1e4*(r() < 0.5 ? -1 : 1), 0];
+  var p1 = [a,0,0], p2 = [0,b,0], rv = sub(p2, p1), rn = norm(rv), rh = scale(rv, 1/rn);
+  var B1 = scale(cross(v1, rh), MU0_4PI*q1*1e-6/(rn*rn)), F = scale(cross(v2, B1), q2*1e-6);
+  var v1h = unitv(v1), v2h = unitv(v2);
+  return {
+    enunciado:'q₁ = ' + fmt(q1) + ' μC está en ' + posCm(p1) + ' y se mueve a ' + fmt(norm(v1)) + ' m/s ' + LADO[axisName(v1h)] + '. q₂ = ' + fmt(q2) + ' μC está en ' + posCm(p2) +
+      ' y se mueve a ' + fmt(norm(v2)) + ' m/s ' + LADO[axisName(v2h)] + '. Halla la fuerza magnética que q₁ ejerce sobre q₂.',
+    respuesta:F.map(clean), unidad:'N',
+    pasos:[
+      'La fuerza sobre q₂ es ' + V('F') + '<sub>12</sub> = q₂ ' + V('v') + '<sub>2</sub> × ' + V('B') + '<sub>1</sub>, donde ' + V('B') + '<sub>1</sub> es el campo que produce q₁ en la posición de q₂.',
+      'Vector de q₁ a q₂: ' + V('r') + ' = ' + vecStr(rv) + ' m, r = √(' + fmt(Math.abs(rv[0])*100) + '² + ' + fmt(Math.abs(rv[1])*100) + '²) = ' + fmt(rn*100, 3) + ' cm. r̂ = ' + vecStr(rh) + '.',
+      'Dirección: v̂₁ × r̂ = (' + axisName(v1h) + ') × (' + vecStr(rh) + ') = ' + vecStr(cross(v1h, rh).map(clean)) + '. Solo aporta la componente de r̂ perpendicular a ' + V('v') + '<sub>1</sub>.',
+      V('B') + '<sub>1</sub> = 10⁻⁷ · (' + fmt(q1*1e-6) + ')(' + fmt(norm(v1)) + ') / (' + fmt(rn, 3) + ')² · (' + vecStr(cross(v1h, rh).map(clean)) + ') = ' + vecStr(B1.map(clean)) + ' T',
+      V('F') + '<sub>12</sub> = (' + fmt(q2*1e-6) + ') · (' + vecStr(v2) + ') × (' + vecStr(B1.map(clean)) + ') = ' + vecStr(F.map(clean)) + ' N'
+    ],
+    preset:{modo:'campo', q:q1*1e-6, v:v1, P:rv}
+  };
+}
+
+function genDirCable(r) {
+  var pasos, enun, opciones, correcta, preset;
+  if (r() < 0.7) {
+    var L = pick(r, AXES.slice(0, 4)), perp = AXES.slice(0, 4).filter(function (a) { return dot(a.v, L.v) === 0; });
+    var sobre = r() < 0.12, R = sobre ? pick(r, AXES.slice(0, 4).filter(function (a) { return Math.abs(dot(a.v, L.v)) === 1; })) : pick(r, perp);
+    var Bd = cross(L.v, R.v);
+    opciones = ['⊙ Saliendo de la hoja (+k̂)', '⊗ Entrando en la hoja (−k̂)', 'B = 0'];
+    correcta = norm(Bd) === 0 ? 'B = 0' : Bd[2] > 0 ? opciones[0] : opciones[1];
+    var orient = (L.v[0] !== 0 ? 'horizontal' : 'vertical');
+    enun = 'Un cable ' + orient + ' en el plano de la hoja lleva corriente ' + LADO[L.n] + '. ¿Qué dirección tiene el campo magnético en un punto ' +
+      (sobre ? 'que está sobre la prolongación del cable' : DONDE[R.n]) + '?';
+    pasos = [
+      'Usa ' + V('B') + ' ∝ I ' + V('ℓ') + ' × r̂, con r̂ apuntando del cable hacia el punto.',
+      V('ℓ') + ' apunta como la corriente: ' + L.n + '. El punto está ' + (sobre ? 'en la misma línea del cable' : DONDE[R.n]) + ', así que r̂ = ' + R.n + '.',
+      sobre ? V('ℓ') + ' y r̂ son paralelos: ' + L.n + ' × ' + R.n + ' = 0. Un cable no produce campo sobre su propia línea.' :
+        L.n + ' × ' + R.n + ' = ' + axisName(Bd) + ' (ciclo î → ĵ → k̂: a favor da +, en contra da −).',
+      'Respuesta: ' + correcta + '.'
+    ];
+    preset = {modo:'cablecampo', I:2, l:scale(L.v, 0.02), P:scale(R.v, 0.04)};
+  } else {
+    var sale = r() < 0.5, I = [0, 0, sale ? 1 : -1], R2 = pick(r, AXES.slice(0, 4)), Bd2 = cross(I, R2.v);
+    opciones = ['+î (derecha)', '−î (izquierda)', '+ĵ (arriba)', '−ĵ (abajo)', '+k̂ (sale)', '−k̂ (entra)'];
+    var nombres = {'+î':0, '−î':1, '+ĵ':2, '−ĵ':3};
+    correcta = opciones[nombres[axisName(Bd2)]];
+    enun = 'Un cable largo, perpendicular a la hoja, lleva corriente ' + (sale ? 'saliendo de la hoja (⊙)' : 'entrando en la hoja (⊗)') + '. ¿Qué dirección tiene el campo magnético en un punto ' + DONDE[R2.n] + '?';
+    pasos = [
+      'La corriente apunta en ' + (sale ? '+k̂' : '−k̂') + ' y r̂ va del cable al punto: r̂ = ' + R2.n + '.',
+      (sale ? 'k̂' : '−k̂') + ' × ' + R2.n + ' = ' + axisName(Bd2) + '.',
+      'Con la mano derecha: el pulgar en la corriente y los dedos rodean el cable en sentido ' + (sale ? 'antihorario' : 'horario') + '.',
+      'Respuesta: ' + correcta + '.'
+    ];
+    preset = {modo:'cablecampo', I:2, l:scale(I, 0.02), P:scale(R2.v, 0.04)};
+  }
+  return {enunciado:enun, opciones:opciones, correcta:correcta, pasos:pasos, preset:preset};
+}
+
+function genCableCorto(r) {
+  var I = randInt(r, 1, 10), Lc = randInt(r, 1, 3), L = pick(r, AXES.slice(0, 4)), l = scale(L.v, Lc/100), P;
+  do { P = [randInt(r, -6, 6)/100, randInt(r, -6, 6)/100, 0]; } while (norm(P) < 0.03 || norm(cross(l, P)) < 1e-9);
+  var rn = norm(P), rh = scale(P, 1/rn), lxr = cross(l, rh), B = scale(lxr, MU0_4PI*I/(rn*rn));
+  return {
+    enunciado:'Un cable corto de ' + Lc + ' cm, centrado en el origen, lleva ' + I + ' A ' + LADO[L.n] + ' (' + L.n + '). Con la fórmula de cable corto, halla el campo magnético en P' + posCm(P) + '.',
+    respuesta:B.map(clean), unidad:'T',
+    pasos:[
+      V('B') + ' = (μ₀/4π) · I ' + V('ℓ') + ' × r̂ / r², con μ₀/4π = 10⁻⁷ T·m/A.',
+      V('ℓ') + ' = ' + vecStr(l) + ' m (apunta como la corriente).',
+      'Del cable a P: ' + V('r') + ' = ' + vecStr(P) + ' m, r = ' + fmt(rn, 4) + ' m, r̂ = ' + vecStr(rh) + '.',
+      V('ℓ') + ' × r̂:' + detHTML(l, rh) + '= ' + vecStr(lxr.map(clean)),
+      'Factor: 10⁻⁷ · ' + I + ' / (' + fmt(rn, 4) + ')² = ' + fmt(MU0_4PI*I/(rn*rn)),
+      V('B') + ' = ' + vecStr(B.map(clean)) + ' T'
+    ],
+    preset:{modo:'cablecampo', I:I, l:l, P:P}
+  };
+}
+
+var TRIPLES = [[3,4],[4,3],[6,8],[8,6],[5,0],[0,5],[2,0],[0,4],[3,0],[0,6]];
+function genCableLargo(r) {
+  var I = randInt(r, 1, 10), sale = r() < 0.6, t = pick(r, TRIPLES);
+  var P = [t[0]*(r() < 0.5 ? -1 : 1)/100, t[1]*(r() < 0.5 ? -1 : 1)/100, 0], d = norm(P), rh = scale(P, 1/d);
+  var Ih = [0, 0, sale ? 1 : -1], dir = cross(Ih, rh), Bm = 2e-7*I/d, B = scale(dir, Bm);
+  return {
+    enunciado:'Un cable largo y recto, perpendicular a la hoja, pasa por el origen y lleva ' + I + ' A ' + (sale ? 'saliendo de la hoja (⊙)' : 'entrando en la hoja (⊗)') + '. Halla el campo magnético en P' + posCm(P) + '.',
+    respuesta:B.map(clean), unidad:'T',
+    pasos:[
+      '|B| = μ₀ I / (2π d) = 2 × 10⁻⁷ · I / d, donde d es la distancia del cable al punto.',
+      'd = √(' + fmt(Math.abs(P[0])*100) + '² + ' + fmt(Math.abs(P[1])*100) + '²) = ' + cm(d) + ' → |B| = 2 × 10⁻⁷ · ' + I + ' / ' + fmt(d) + ' = ' + fmt(Bm) + ' T.',
+      'Dirección: Î = ' + (sale ? 'k̂' : '−k̂') + ', r̂ = ' + vecStr(rh) + '. Î × r̂ = ' + vecStr(dir.map(clean)) + ' (recuerda k̂ × î = ĵ y k̂ × ĵ = −î).',
+      V('B') + ' = ' + fmt(Bm) + ' · (' + vecStr(dir.map(clean)) + ') = ' + vecStr(B.map(clean)) + ' T'
+    ],
+    preset:null
+  };
+}
+
+function genCableAbierto(r) {
+  var I = randInt(r, 1, 5), Bm = randInt(r, 1, 5)/100, sale = r() < 0.5, Bv = [0, 0, sale ? Bm : -Bm];
+  var horiz = r() < 0.6, s2 = r() < 0.5 ? 1 : -1, len = [randInt(r, 2, 5), randInt(r, 2, 5), randInt(r, 2, 5)].map(function (x) { return x/100; });
+  var dirs = horiz ? [[1,0,0], [0,s2,0], [1,0,0]] : [[0,1,0], [s2,0,0], [0,1,0]];
+  var pts = [[0,0,0]];
+  dirs.forEach(function (dv, i) { pts.push(add(pts[i], scale(dv, len[i]))); });
+  var nom = ['a','b','c','d'], tot = [0,0,0], pasos = [V('F') + ' = I ' + V('ℓ') + ' × ' + V('B') + ' en cada tramo, con ' + V('B') + ' = ' + vecStr(Bv) + ' T.'];
+  var desc = [];
+  for (var i = 0; i < 3; i++) {
+    var l = sub(pts[i + 1], pts[i]), Fi = scale(cross(l, Bv), I);
+    tot = add(tot, Fi);
+    desc.push('de ' + nom[i] + ' a ' + nom[i + 1] + ' recorre ' + fmt(len[i]*100) + ' cm ' + LADO[axisName(unitv(l))]);
+    pasos.push(nom[i] + nom[i + 1] + ': ' + V('ℓ') + ' = ' + vecStr(l) + ' m → (' + axisName(unitv(l)) + ') × (' + (sale ? 'k̂' : '−k̂') + ') = ' + axisName(cross(unitv(l), [0,0,sale ? 1 : -1])) + ' → ' + V('F') + ' = ' + vecStr(Fi.map(clean)) + ' N');
+  }
+  pasos.push('Suma: ' + V('F') + '<sub>total</sub> = ' + vecStr(tot.map(clean)) + ' N');
+  pasos.push('Atajo: el cable es abierto, así que la fuerza total es la de un cable recto de a a d: ' + V('ℓ') + '<sub>ad</sub> = ' + vecStr(pts[3]) + ' m, y I ' + V('ℓ') + '<sub>ad</sub> × ' + V('B') + ' da lo mismo.');
+  return {
+    enunciado:'Un cable doblado lleva I = ' + I + ' A de a hasta d: ' + desc.join(', ') + '. Está en un campo uniforme de ' + fmt(Bm) + ' T ' + (sale ? 'saliendo de la hoja (⊙)' : 'entrando en la hoja (⊗)') + '. Halla la fuerza magnética total.',
+    respuesta:tot.map(clean), unidad:'N', pasos:pasos,
+    preset:{modo:'espira', I:I, puntos:pts, B:Bv, nombres:nom, abierto:true}
+  };
+}
+
+/* Insertar los tipos nuevos junto a los de su tema */
+(function () {
+  function after(id, g) { for (var i = 0; i < GENERADORES.length; i++) if (GENERADORES[i].id === id) { GENERADORES.splice(i + 1, 0, g); return; } GENERADORES.push(g); }
+  after('espira', {id:'cableAbierto', tema:'fuerza', nombre:'Cable doblado (abierto)', tipo:'vector', gen:genCableAbierto});
+  after('cableAbierto', {id:'entreCargas', tema:'fuerza', nombre:'Fuerza entre dos cargas', tipo:'vector', gen:genEntreCargas});
+  after('campo', {id:'dosCargas', tema:'campo', nombre:'Campo de dos cargas en el origen', tipo:'vector', gen:genDosCargas});
+  GENERADORES.push({id:'dirCable', tema:'cable', nombre:'Dirección del campo (⊙ / ⊗)', tipo:'mc', gen:genDirCable});
+  GENERADORES.push({id:'cableCorto', tema:'cable', nombre:'Campo de un cable corto', tipo:'vector', gen:genCableCorto});
+  GENERADORES.push({id:'cableLargo', tema:'cable', nombre:'Campo de un cable largo', tipo:'vector', gen:genCableLargo});
+})();
+
+CONCEPTOS.push(
+  {p:'En un dibujo de campo magnético, ¿qué significa el símbolo ⊙ (o un punto •)?', o:['Un vector que sale de la hoja (+k̂)','Un vector que entra en la hoja (−k̂)','Que el campo vale cero','Una carga positiva'], c:'Un vector que sale de la hoja (+k̂)',
+   e:'Imagina la punta de una flecha que viene hacia ti: se ve como un punto. La cola de una flecha que se aleja se ve como una cruz (⊗ o ×), que es −k̂.'},
+  {p:'Un punto está sobre la prolongación de un cable recto con corriente. ¿Cuánto vale el campo que produce ese cable en el punto?', o:['Cero','El máximo posible','μ₀I/(2πr)','Depende del sentido de la corriente'], c:'Cero',
+   e:'r̂ es paralelo a ℓ, así que ℓ × r̂ = 0. Por eso los tramos ab y ef del ejercicio del tablero no aportan campo en P.'},
+  {p:'Una espira en el plano de la hoja lleva corriente en sentido horario. ¿Hacia dónde apunta el campo en su centro?', o:['Entrando en la hoja (−k̂)','Saliendo de la hoja (+k̂)','Es cero','Hacia la derecha'], c:'Entrando en la hoja (−k̂)',
+   e:'Todos los lados dan ℓ × r̂ = −k̂ en el centro (como en la espira de 4 × 3 cm). Si la corriente fuera antihoraria, el campo saldría de la hoja.'},
+  {p:'Un cable doblado (abierto) está en un campo magnético uniforme. Su fuerza total es igual a la de…', o:['Un cable recto que va del inicio al final','Cero, siempre','La del tramo más largo','La suma de las longitudes por B'], c:'Un cable recto que va del inicio al final',
+   e:'Σ I ℓ × B = I (Σ ℓ) × B, y Σ ℓ es el vector del inicio al final. Si el cable se cierra en una espira, ese vector es cero y la fuerza también.'},
+  {p:'Si te alejas al doble de distancia de un cable largo, el campo magnético…', o:['Se reduce a la mitad','Se reduce a la cuarta parte','No cambia','Se duplica'], c:'Se reduce a la mitad',
+   e:'Para un cable largo, B = μ₀ I / (2π d): es inversamente proporcional a d.'},
+  {p:'Si te alejas al doble de distancia de una carga en movimiento (o de un cable corto), el campo magnético…', o:['Se reduce a la cuarta parte','Se reduce a la mitad','No cambia','Se duplica'], c:'Se reduce a la cuarta parte',
+   e:'Para una carga o un cable corto, B ∝ 1/r²: al doble de distancia, (1/2)² = 1/4.'}
+);
+
+FORMULAS.push(
+  {tema:'fuerza', titulo:'Fuerza entre dos cargas en movimiento', f:V('F') + '<sub>12</sub> = q₂ ' + V('v') + '<sub>2</sub> × ' + V('B') + '<sub>1</sub>',
+   d:'Primero calcula el campo B₁ que produce q₁ en la posición de q₂; después la fuerza sobre q₂.'},
+  {tema:'fuerza', titulo:'Cable doblado en campo uniforme', f:V('F') + '<sub>total</sub> = I ' + V('ℓ') + '<sub>inicio→final</sub> × ' + V('B'),
+   d:'La fuerza total es la de un cable recto del inicio al final. En una espira cerrada ese vector es cero.'},
+  {tema:'cable', titulo:'Campo de un cable corto', f:V('B') + ' = (μ₀ / 4π) · I ' + V('ℓ') + ' × r̂ / r²',
+   d:'ℓ apunta como la corriente y r̂ va del cable al punto. Funciona bien cuando el cable es corto comparado con la distancia r.'},
+  {tema:'cable', titulo:'Campo de un cable largo', f:'|' + V('B') + '| = μ₀ I / (2π d)',
+   d:'d es la distancia perpendicular al cable. Dirección: Î × r̂ (pulgar en la corriente, los dedos rodean el cable).'},
+  {tema:'cable', titulo:'Puntos y cruces', f:'⊙ = +k̂ &nbsp;&nbsp; ⊗ = −k̂',
+   d:'⊙ o • : el vector sale de la hoja, hacia ti. ⊗ o × : el vector entra en la hoja.'}
+);
+
+FLASH.push(
+  {id:'f17', a:'⊙ (o •) en un dibujo', b:'Vector saliendo de la hoja: +k̂'},
+  {id:'f18', a:'⊗ (o ×) en un dibujo', b:'Vector entrando en la hoja: −k̂'},
+  {id:'f19', a:'Campo de un cable corto', b:V('B') + ' = (μ₀/4π) I ' + V('ℓ') + ' × r̂ / r²'},
+  {id:'f20', a:'Campo de un cable largo', b:'|B| = μ₀ I / (2π d)'},
+  {id:'f21', a:'Cable horizontal con corriente hacia la derecha: ¿campo arriba y abajo?', b:'Arriba ⊙ (+k̂), abajo ⊗ (−k̂)'},
+  {id:'f22', a:'Campo en el centro de una espira horaria', b:'Entra en la hoja (−k̂)'},
+  {id:'f23', a:'Campo de un cable en un punto de su propia línea', b:'Cero (ℓ ∥ r̂)'},
+  {id:'f24', a:'Fuerza que q₁ ejerce sobre q₂', b:V('F') + '<sub>12</sub> = q₂ ' + V('v') + '<sub>2</sub> × ' + V('B') + '<sub>1</sub>'},
+  {id:'f25', a:'Fuerza total sobre un cable doblado en B uniforme', b:'La de un cable recto del inicio al final'}
+);
+
+/* --- Ejercicios resueltos nuevos --- */
+var RECT = [[0,0],[0,3],[4,3],[4,0]];
+function segsRect(lab) {
+  return [
+    {t:'seg', a:RECT[0], b:RECT[1]}, {t:'seg', a:RECT[1], b:RECT[2]}, {t:'seg', a:RECT[2], b:RECT[3]}, {t:'seg', a:RECT[3], b:RECT[0]},
+    {t:'texto', p:[-0.35, -0.35], s:'a', c:'i'}, {t:'texto', p:[-0.35, 3.35], s:'b', c:'i'}, {t:'texto', p:[4.35, 3.35], s:'c', c:'i'}, {t:'texto', p:[4.35, -0.35], s:'d', c:'i'},
+    {t:'texto', p:[2, -0.75], s:'4 cm'}, {t:'texto', p:[-1, 1.5], s:'3 cm'}
+  ].concat(lab || []);
+}
+
+RESUELTOS.push(
+  {id:'r-espira-43-fuerza', tema:'fuerza', titulo:'Espira de 4 × 3 cm en B = 0,01 T',
+   enunciado:'Una espira rectangular de 4 cm × 3 cm lleva I = 2 A en sentido horario (a → b → c → d, con a en el origen). Está en un campo uniforme B = 0,01 T que entra en la hoja (⊗, −k̂). Halla la fuerza magnética total.',
+   figura:fig({x:[-1.8, 6.2], y:[-1.4, 4.2], alt:'Espira rectangular en un campo que entra en la hoja', items:segsRect([
+     {t:'campos', tipo:'cross', pts:grilla([1, 2, 3, 5.3], [0.8, 2.2])}, {t:'texto', p:[5.3, 3.5], s:'B = 0,01 T', c:'b'}])}),
+   pasos:[
+     'ab sube: ' + V('ℓ') + ' = 0,03 ĵ m. ĵ × (−k̂) = −î → ' + V('F') + '<sub>ab</sub> = (2)(0,03)(0,01)(−î) = −6 × 10⁻⁴ î N.',
+     'bc va a la derecha: ' + V('ℓ') + ' = 0,04 î m. î × (−k̂) = ĵ → ' + V('F') + '<sub>bc</sub> = 8 × 10⁻⁴ ĵ N.',
+     'cd baja: ' + V('ℓ') + ' = −0,03 ĵ m. (−ĵ) × (−k̂) = î → ' + V('F') + '<sub>cd</sub> = 6 × 10⁻⁴ î N.',
+     'da va a la izquierda: ' + V('ℓ') + ' = −0,04 î m. (−î) × (−k̂) = −ĵ → ' + V('F') + '<sub>da</sub> = −8 × 10⁻⁴ ĵ N.',
+     'Suma: (−6 + 6) × 10⁻⁴ î + (8 − 8) × 10⁻⁴ ĵ = 0.'
+   ],
+   resultado:V('F') + '<sub>total</sub> = 0, como en todo lazo cerrado dentro de un campo uniforme.',
+   nota:'En los apuntes, el lado bc aparece con ℓ = 0,04 ĵ. Ese lado es horizontal, así que ℓ = 0,04 î. El resultado F<sub>bc</sub> = 8 × 10⁻⁴ ĵ N sí está bien.',
+   preset:{modo:'espira', I:2, puntos:[[0,0,0],[0,0.03,0],[0.04,0.03,0],[0.04,0,0]], B:[0,0,-0.01], nombres:['a','b','c','d']}},
+
+  {id:'r-escalera', tema:'fuerza', titulo:'Cable en escalera (tablero)',
+   enunciado:'Un cable doblado lleva I = 2 A de a a d: de a a b recorre 3 cm hacia la derecha, de b a c 3 cm hacia arriba y de c a d 3 cm hacia la derecha. Está en un campo B = 0,02 T que sale de la hoja (⊙, +k̂). Halla la fuerza magnética total.',
+   figura:fig({x:[-1, 7.6], y:[-1.4, 4.4], alt:'Cable en forma de escalera en un campo que sale de la hoja', items:[
+     {t:'seg', a:[0,0], b:[3,0]}, {t:'seg', a:[3,0], b:[3,3]}, {t:'seg', a:[3,3], b:[6,3]},
+     {t:'campos', tipo:'dot', pts:[[0.5,1.5],[1.5,2.5],[1.5,1.2],[4.5,1.5],[5.5,1.5],[4.5,0.4],[0.5,3.6],[5.2,4]]},
+     {t:'texto', p:[0, -0.5], s:'a', c:'i'}, {t:'texto', p:[3.3, -0.5], s:'b', c:'i'}, {t:'texto', p:[2.7, 3.4], s:'c', c:'i'}, {t:'texto', p:[6.3, 3.4], s:'d', c:'i'},
+     {t:'texto', p:[1.5, -0.8], s:'3 cm'}, {t:'texto', p:[3.9, 1.9], s:'3 cm', anchor:'start'}, {t:'texto', p:[4.5, 2.4], s:'3 cm'},
+     {t:'texto', p:[6.6, 0.4], s:'B = 0,02 T', c:'b'}]}),
+   pasos:[
+     'ab: ' + V('ℓ') + ' = 0,03 î m. î × k̂ = −ĵ → ' + V('F') + '<sub>ab</sub> = −(2)(0,03)(0,02) ĵ = −1,2 × 10⁻³ ĵ N.',
+     'bc: ' + V('ℓ') + ' = 0,03 ĵ m. ĵ × k̂ = î → ' + V('F') + '<sub>bc</sub> = 1,2 × 10⁻³ î N.',
+     'cd: igual que ab → ' + V('F') + '<sub>cd</sub> = −1,2 × 10⁻³ ĵ N.',
+     'Suma: 1,2 × 10⁻³ î + (−1,2 − 1,2) × 10⁻³ ĵ.'
+   ],
+   resultado:V('F') + '<sub>total</sub> = 1,2 × 10⁻³ î − 2,4 × 10⁻³ ĵ N',
+   tip:'El cable es abierto, así que la fuerza total no es cero. Es la misma que sobre un cable recto de a a d: ' + V('ℓ') + '<sub>ad</sub> = 0,06 î + 0,03 ĵ m, y 2 (0,06 î + 0,03 ĵ) × 0,02 k̂ = 1,2 × 10⁻³ î − 2,4 × 10⁻³ ĵ N.',
+   preset:{modo:'espira', I:2, puntos:[[0,0,0],[0.03,0,0],[0.03,0.03,0],[0.06,0.03,0]], B:[0,0,0.02], nombres:['a','b','c','d'], abierto:true}},
+
+  {id:'r-entre-cargas', tema:'fuerza', titulo:'Fuerza que q₁ ejerce sobre q₂',
+   enunciado:'q₁ = 4 μC está en (4 cm; 0) y se mueve a 9 × 10⁴ m/s hacia +x. q₂ = −8 μC está en (0; 6 cm) y se mueve a 5 × 10⁴ m/s hacia +x. Halla la fuerza magnética que q₁ ejerce sobre q₂.',
+   figura:fig({x:[-1.5, 8], y:[-1.5, 7.6], ejes:true, alt:'Dos cargas: q2 sobre el eje y, q1 sobre el eje x', items:[
+     {t:'linea', a:[4,0], b:[0,6], label:'r', lx:12, ly:-4},
+     {t:'carga', p:[0,6], s:'−', label:'q₂ = −8 μC', lx:14, ly:-18, anchor:'start'}, {t:'flecha', a:[0.45,6], b:[2.8,6], label:'v₂', ly:-12},
+     {t:'carga', p:[4,0], s:'+', label:'q₁ = 4 μC', ly:-18}, {t:'flecha', a:[4.45,0], b:[6.8,0], label:'v₁', ly:-12},
+     {t:'texto', p:[2, -0.8], s:'4 cm'}, {t:'texto', p:[-0.9, 3], s:'6 cm'}]}),
+   pasos:[
+     'La fuerza sobre q₂ es ' + V('F') + '<sub>12</sub> = q₂ ' + V('v') + '<sub>2</sub> × ' + V('B') + '<sub>1</sub>, donde ' + V('B') + '<sub>1</sub> es el campo que produce q₁ en la posición de q₂.',
+     'Vector de q₁ a q₂: ' + V('r') + ' = −4 î + 6 ĵ cm, r = √(4² + 6²) = √52 = 7,21 cm. r̂ = −0,555 î + 0,832 ĵ.',
+     '|B₁| sin el factor angular: 10⁻⁷ (4 × 10⁻⁶)(9 × 10⁴) / (0,0721)² = 6,92 × 10⁻⁶ T.',
+     'Dirección: î × r̂ = 0,832 k̂ (la componente î de r̂ no aporta). ' + V('B') + '<sub>1</sub> = 6,92 × 10⁻⁶ × 0,832 k̂ = 5,76 × 10⁻⁶ k̂ T.',
+     V('F') + '<sub>12</sub> = (−8 × 10⁻⁶)(5 × 10⁴)(5,76 × 10⁻⁶)(î × k̂). î × k̂ = −ĵ, y la carga negativa lo invierte a +ĵ.'
+   ],
+   resultado:V('F') + '<sub>12</sub> ≈ 2,30 × 10⁻⁶ ĵ N',
+   nota:'Los apuntes dan 2,31 × 10⁻⁶ ĵ porque redondean r a 7,2 cm. Con r = √52 = 7,21 cm sale 2,30 × 10⁻⁶ ĵ. Es solo una diferencia de redondeo.',
+   preset:{modo:'campo', q:4e-6, v:[9e4,0,0], P:[-0.04,0.06,0]}},
+
+  {id:'r-dos-cargas', tema:'campo', titulo:'Campo total de dos cargas en el origen',
+   enunciado:'q₁ = 5 μC está en (7 cm; 0) y se mueve a 8 × 10⁴ m/s hacia abajo (−ĵ). q₂ = −7 μC está en (0; 4 cm) y se mueve a 6 × 10⁴ m/s hacia la izquierda (−î). Halla el campo magnético total en el origen.',
+   figura:fig({x:[-3.4, 9.4], y:[-3, 6], u:24, ejes:true, alt:'q2 sobre el eje y moviéndose a la izquierda; q1 sobre el eje x moviéndose hacia abajo', items:[
+     {t:'carga', p:[0,4], s:'−', label:'q₂ = −7 μC', lx:14, ly:-16, anchor:'start'}, {t:'flecha', a:[-0.45,4], b:[-2.8,4], label:'v₂', ly:-12},
+     {t:'carga', p:[7,0], s:'+', label:'q₁ = 5 μC', ly:-18}, {t:'flecha', a:[7,-0.45], b:[7,-2.6], label:'v₁', lx:14},
+     {t:'punto', p:[0,0], label:'O', lx:-10, ly:12}, {t:'texto', p:[3.5, -0.8], s:'7 cm'}, {t:'texto', p:[0.4, 2], s:'4 cm', anchor:'start'}]}),
+   pasos:[
+     V('r') + ' va desde cada carga hasta el origen. Para q₁: r̂ = −î, r = 0,07 m. Para q₂: r̂ = −ĵ, r = 0,04 m.',
+     '|B₁| = 10⁻⁷ (5 × 10⁻⁶)(8 × 10⁴) / (0,07)² = 8,16 × 10⁻⁶ T. Dirección: (−ĵ) × (−î) = ĵ × î = −k̂. ' + V('B') + '<sub>1</sub> = −8,16 × 10⁻⁶ k̂ T.',
+     '|B₂| = 10⁻⁷ (7 × 10⁻⁶)(6 × 10⁴) / (0,04)² = 2,63 × 10⁻⁵ T. Dirección: (−î) × (−ĵ) = î × ĵ = +k̂, pero q₂ es negativa: −k̂. ' + V('B') + '<sub>2</sub> = −2,63 × 10⁻⁵ k̂ T.',
+     'Suma: ' + V('B') + ' = −8,16 × 10⁻⁶ k̂ − 2,63 × 10⁻⁵ k̂.'
+   ],
+   resultado:V('B') + '<sub>total</sub> ≈ −3,44 × 10⁻⁵ k̂ T',
+   nota:'En los apuntes, B₂ aparece escrito como +2,62 × 10⁻⁵ k̂, pero en la suma se usa con signo menos, que es lo correcto porque q₂ es negativa. El total exacto es −3,44 × 10⁻⁵ k̂ T; el −3,43 de los apuntes es redondeo.',
+   preset:null},
+
+  {id:'r-dir-cable', tema:'cable', titulo:'Dirección del campo alrededor de un cable',
+   enunciado:'Un cable horizontal lleva corriente hacia la derecha (+î). ¿Cómo es el campo arriba y abajo del cable? ¿Y si la corriente va hacia la izquierda?',
+   figura:fig({x:[-0.5, 12], y:[-3, 3], u:24, alt:'Cable horizontal: puntos arriba, cruces abajo', items:[
+     {t:'seg', a:[0,0], b:[8,0], w:3.4, label:'I', lx:0, ly:-14, math:true},
+     {t:'campos', tipo:'dot', pts:grilla([1.5, 4, 6.5], [1.2, 2.3])}, {t:'campos', tipo:'cross', pts:grilla([1.5, 4, 6.5], [-1.2, -2.3])},
+     {t:'texto', p:[8.6, 1.75], s:'⊙ sale (+k̂)', c:'b', anchor:'start'}, {t:'texto', p:[8.6, -1.75], s:'⊗ entra (−k̂)', c:'b', anchor:'start'}]}),
+   pasos:[
+     'Usa ' + V('B') + ' ∝ I ' + V('ℓ') + ' × r̂, donde ' + V('ℓ') + ' apunta como la corriente y r̂ va del cable al punto.',
+     'Arriba del cable: r̂ = ĵ. î × ĵ = k̂ → el campo sale de la hoja (⊙).',
+     'Abajo del cable: r̂ = −ĵ. î × (−ĵ) = −k̂ → el campo entra en la hoja (⊗).',
+     'Si la corriente va hacia la izquierda (−î), todo se invierte: (−î) × ĵ = −k̂ arriba y (−î) × (−ĵ) = k̂ abajo.',
+     'Cable vertical con corriente hacia arriba (ĵ): a la derecha r̂ = î y ĵ × î = −k̂ (⊗); a la izquierda, ⊙.'
+   ],
+   resultado:'Corriente hacia +î: ⊙ arriba y ⊗ abajo. Corriente hacia −î: ⊗ arriba y ⊙ abajo.',
+   preset:{modo:'cablecampo', I:2, l:[0.02,0,0], P:[0,0.04,0]}},
+
+  {id:'r-rect-centro', tema:'cable', titulo:'Campo en el centro de una espira de 4 × 3 cm',
+   enunciado:'Una espira rectangular de 4 cm (en x) × 3 cm (en y), con una esquina en el origen, lleva I = 2 A en sentido horario. Halla el campo magnético en el centro del rectángulo.',
+   figura:fig({x:[-1.8, 6], y:[-1.4, 4.2], alt:'Espira rectangular horaria con su centro marcado', items:segsRect([{t:'punto', p:[2, 1.5], c:'r', label:'centro', ly:-12}])}),
+   pasos:[
+     'Dirección lado por lado (r̂ va del lado al centro). ab sube por x = 0: ĵ × î = −k̂. bc va a la derecha por arriba: î × (−ĵ) = −k̂. cd baja: (−ĵ) × (−î) = −k̂. da va a la izquierda por abajo: (−î) × ĵ = −k̂.',
+     'Los cuatro lados apuntan en −k̂, así que las magnitudes se suman. El centro está a 2 cm de los lados verticales y a 1,5 cm de los horizontales.',
+     'Con la fórmula de cable corto (ℓ = lado, r = distancia al centro): cada lado vertical da 10⁻⁷ (2)(0,03) / (0,02)² = 1,5 × 10⁻⁵ T y cada horizontal 10⁻⁷ (2)(0,04) / (0,015)² = 3,56 × 10⁻⁵ T.',
+     'Suma: 2(1,5 × 10⁻⁵) + 2(3,56 × 10⁻⁵) = 1,01 × 10⁻⁴ T.'
+   ],
+   resultado:V('B') + ' = −1,01 × 10⁻⁴ k̂ T con la fórmula de cable corto (entra en la hoja). Valor exacto: −6,67 × 10⁻⁵ k̂ T.',
+   nota:'La fórmula de cable corto supone que el cable es mucho más corto que la distancia al punto. Aquí los lados (3 y 4 cm) son más largos que las distancias al centro (2 y 1,5 cm), y la fórmula sobreestima el campo en un 50 %. El valor exacto sale de la fórmula de un segmento recto finito, B = (μ₀ I / 4π d)(sen α₁ + sen α₂): 1,2 × 10⁻⁵ T por cada lado vertical y 2,13 × 10⁻⁵ T por cada horizontal, en total 6,67 × 10⁻⁵ T. La dirección (−k̂) es la misma con los dos métodos.',
+   preset:null},
+
+  {id:'r-campo-p', tema:'cable', titulo:'Campo en P de un cable doblado (tablero)',
+   enunciado:'Un cable lleva I = 2 A por el camino a → b → c → d → e → f. Cada tramo mide 4 cm: ab hacia la derecha, bc hacia arriba, cd hacia la derecha, de hacia abajo y ef hacia la derecha. P está en la base, en el punto medio entre b y e. Halla el campo magnético total en P.',
+   figura:fig({x:[-0.6, 12.6], y:[-1.4, 5], u:22, alt:'Cable con forma de puente; P entre b y e', items:[
+     {t:'seg', a:[0,0], b:[4,0]}, {t:'seg', a:[4,0], b:[4,4]}, {t:'seg', a:[4,4], b:[8,4]}, {t:'seg', a:[8,4], b:[8,0]}, {t:'seg', a:[8,0], b:[12,0]},
+     {t:'punto', p:[6,0], c:'r', label:'P', ly:-12},
+     {t:'texto', p:[0, -0.6], s:'a', c:'i'}, {t:'texto', p:[4, -0.6], s:'b', c:'i'}, {t:'texto', p:[3.6, 4.4], s:'c', c:'i'}, {t:'texto', p:[8.4, 4.4], s:'d', c:'i'}, {t:'texto', p:[8, -0.6], s:'e', c:'i'}, {t:'texto', p:[12, -0.6], s:'f', c:'i'},
+     {t:'texto', p:[2, 0.5], s:'4 cm'}, {t:'texto', p:[6, 4.55], s:'4 cm'}, {t:'texto', p:[10, 0.5], s:'4 cm'}, {t:'texto', p:[3.1, 2], s:'4 cm', anchor:'end'}, {t:'texto', p:[8.9, 2], s:'4 cm', anchor:'start'}]}),
+   pasos:[
+     'ab y ef están sobre la misma línea que P: ' + V('ℓ') + ' y r̂ son paralelos (î × î = 0), así que no aportan campo.',
+     'bc sube y P está a su derecha: ĵ × î = −k̂. cd va a la derecha y P está abajo: î × (−ĵ) = −k̂. de baja y P está a su izquierda: (−ĵ) × (−î) = −k̂.',
+     'Los tres aportes apuntan en −k̂ y se suman.',
+     'Con la fórmula de cable corto (r = distancia perpendicular, como en el tablero): B<sub>bc</sub> = B<sub>de</sub> = 10⁻⁷ (2)(0,04) / (0,02)² = 2 × 10⁻⁵ T y B<sub>cd</sub> = 10⁻⁷ (2)(0,04) / (0,04)² = 5 × 10⁻⁶ T. Total: 4,5 × 10⁻⁵ T.'
+   ],
+   resultado:V('B') + '<sub>P</sub> = −4,5 × 10⁻⁵ k̂ T con la fórmula de cable corto (entra en la hoja). Valor exacto: −2,24 × 10⁻⁵ k̂ T.',
+   nota:'En el tablero solo quedaron las direcciones. Como en la espira de 4 × 3 cm, los tramos no son cortos frente a la distancia a P, y la fórmula de cable corto da el doble del valor exacto. Con la fórmula de segmento finito: B<sub>bc</sub> = B<sub>de</sub> = 8,94 × 10⁻⁶ T y B<sub>cd</sub> = 4,47 × 10⁻⁶ T, en total 2,24 × 10⁻⁵ T.',
+   preset:null}
+);
+/* Ordenar los resueltos por tema, conservando el orden dentro de cada tema */
+(function () {
+  var orden = TEMAS.map(function (t) { return t.id; });
+  var sorted = RESUELTOS.map(function (r, i) { return {r:r, i:i}; }).sort(function (a, b) { return (orden.indexOf(a.r.tema) - orden.indexOf(b.r.tema)) || (a.i - b.i); }).map(function (x) { return x.r; });
+  RESUELTOS.length = 0; Array.prototype.push.apply(RESUELTOS, sorted);
+})();
+
 if (typeof module !== 'undefined') module.exports = {cross:cross, fmt:fmt, parseNum:parseNum, vecStr:vecStr, GENERADORES:GENERADORES, rng:rng, corregirVector:corregirVector, RESUELTOS:RESUELTOS, scale:scale, norm:norm, add:add, sub:sub};
 
 </script>
@@ -972,14 +1373,17 @@ $$('#flashDeck button').forEach(function (b) {
 var LOOPS = {
   tri:{nombre:'Triangular (apuntes)', puntos:[[0.8,0,0],[0,0,0],[0,0.6,0]], nombres:['a','b','c']},
   cubo:{nombre:'Aristas de un cubo de 0,4 m (apuntes)', puntos:[[0.4,0.4,0],[0.4,0,0],[0.4,0,0.4],[0,0.4,0.4]], nombres:['a','b','c','d']},
-  cuadrada:{nombre:'Cuadrada en el plano xy', puntos:[[0,0,0],[0.5,0,0],[0.5,0.5,0],[0,0.5,0]], nombres:['a','b','c','d']}
+  cuadrada:{nombre:'Cuadrada en el plano xy', puntos:[[0,0,0],[0.5,0,0],[0.5,0.5,0],[0,0.5,0]], nombres:['a','b','c','d']},
+  rect43:{nombre:'Rectángulo de 4 × 3 cm (apuntes)', puntos:[[0,0,0],[0,0.03,0],[0.04,0.03,0],[0.04,0,0]], nombres:['a','b','c','d']},
+  escalera:{nombre:'Cable en escalera, abierto (tablero)', puntos:[[0,0,0],[0.03,0,0],[0.03,0.03,0],[0.06,0.03,0]], nombres:['a','b','c','d'], abierto:true}
 };
 var viz = {
   modo:'carga',
   carga:{q:2e-6, v:[0,4e4,0], B:[0.02*Math.cos(Math.PI/6), 0.01, 0]},
   cable:{q:2, v:[-0.01,0,0], B:[0.02*Math.cos(Math.PI/6), 0.01, 0]},
   espira:{loop:'tri', I:5, B:[0,3,0]},
-  campo:{q:7e-6, v:[4e4,0,0], P:[0,1,1]}
+  campo:{q:7e-6, v:[4e4,0,0], P:[0,1,1]},
+  cablecampo:{I:2, l:[0.02,0,0], P:[0,0.04,0]}
 };
 var cam = {yaw:-35*Math.PI/180, pitch:20*Math.PI/180};
 function editStr(x) {
@@ -1024,9 +1428,13 @@ function pintarControles() {
   } else if (m === 'espira') {
     var opts = Object.keys(LOOPS).map(function (k) { return '<option value="' + k + '"' + (d.loop === k ? ' selected' : '') + '>' + LOOPS[k].nombre + '</option>'; }).join('');
     if (d.custom) opts += '<option value="custom"' + (d.loop === 'custom' ? ' selected' : '') + '>Del ejercicio de práctica</option>';
-    h += '<div class="ctrl-group"><label class="ctrl-label" for="loopSel">Forma de la espira</label><select class="field" id="loopSel">' + opts + '</select></div>';
+    h += '<div class="ctrl-group"><label class="ctrl-label" for="loopSel">Forma del cable</label><select class="field" id="loopSel">' + opts + '</select></div>';
     h += '<div class="ctrl-group"><div class="ctrl-label"><span>Corriente I <span class="muted small">[A]</span></span></div><div class="comp" style="grid-template-columns:minmax(0,1fr)">' + campoInput('espira.I', d.I, 'Sentido: a → b → c → …') + '</div></div>';
     h += grupoVector('espira.B', 'Campo uniforme <span class="vec">B</span>', '--bcol', d.B, 'T', true);
+  } else if (m === 'cablecampo') {
+    h += '<div class="ctrl-group"><div class="ctrl-label"><span>Corriente I <span class="muted small">[A]</span></span></div><div class="comp" style="grid-template-columns:minmax(0,1fr)">' + campoInput('cablecampo.I', d.I, 'Valor') + '</div></div>';
+    h += grupoVector('cablecampo.l', 'Cable corto <span class="vec">ℓ</span> (centrado en el origen)', '--vcol', d.l, 'm', true);
+    h += grupoVector('cablecampo.P', 'Punto P', '--rcol', d.P, 'm', false);
   } else {
     h += '<div class="ctrl-group"><div class="ctrl-label"><span>Carga q <span class="muted small">[C]</span></span></div>' +
       '<div class="comp" style="grid-template-columns:minmax(0,1fr) auto">' + campoInput('campo.q', d.q, 'Valor') +
@@ -1083,16 +1491,18 @@ function resultadoViz() {
     if (norm(F) === 0) h += '<div class="small muted">' + (norm(d.v) && norm(d.B) && d.q ? nv + ' es paralelo a <span class="vec">B</span>: no hay fuerza magnética.' : 'Algún dato vale cero, así que no hay fuerza.') + '</div>';
     else h += '<div class="small muted"><span class="vec">F</span> es perpendicular a ' + nv + ' y a <span class="vec">B</span>.' + (m === 'carga' && d.q < 0 ? ' Como q es negativa, apunta al lado contrario de ' + nv + ' × <span class="vec">B</span>.' : '') + '</div>';
   } else if (m === 'espira') {
-    var L = loopActual(), n = L.puntos.length, tot = [0,0,0], rows = '';
-    for (var i = 0; i < n; i++) {
+    var L = loopActual(), n = L.puntos.length, nseg = L.abierto ? n - 1 : n, tot = [0,0,0], rows = '';
+    for (var i = 0; i < nseg; i++) {
       var a = L.puntos[i], b = L.puntos[(i + 1) % n], l = sub(b, a), Fi = scale(cross(l, d.B), d.I);
       tot = add(tot, Fi);
       rows += '<tr><td>' + L.nombres[i] + L.nombres[(i + 1) % n] + '</td><td>ℓ = ' + vecStr(l) + '<br>F = ' + vecStr(Fi.map(clean)) + '</td></tr>';
     }
     tot = tot.map(function (x) { return Math.abs(x) < 1e-12 ? 0 : x; });
     h += '<span class="eyebrow">Fuerza en cada segmento (N)</span><table>' + rows + '</table>';
-    h += '<div class="big">F total = ' + vecStr(tot) + ' N</div><div class="small muted">Con un campo uniforme, la suma siempre es cero.</div>';
-  } else {
+    h += '<div class="big">F total = ' + vecStr(tot) + ' N</div><div class="small muted">' + (L.abierto ?
+      'Cable abierto: la fuerza total es la de un cable recto de ' + L.nombres[0] + ' a ' + L.nombres[n - 1] + ', I (' + vecStr(sub(L.puntos[n - 1], L.puntos[0])) + ') × <span class="vec">B</span>.' :
+      'Lazo cerrado en un campo uniforme: la suma siempre es cero.') + '</div>';
+  } else if (m === 'campo') {
     var r = d.P, rn = norm(r);
     if (!rn) { h = '<span class="eyebrow">Resultado</span><div class="small">El punto P no puede estar sobre la carga (r = 0).</div>'; }
     else {
@@ -1102,6 +1512,17 @@ function resultadoViz() {
       h += '<table><tr><td>r</td><td>' + fmt(rn, 4) + ' m</td></tr><tr><td>r̂</td><td>' + vecStr(rh) + '</td></tr><tr><td>|B|</td><td>' + fmt(norm(Bv)) + ' T</td></tr></table>';
       h += '<div class="small muted">Las flechas tenues muestran cómo el campo rodea la línea de movimiento de la carga.</div>';
     }
+  } else if (m === 'cablecampo') {
+    var r2 = d.P, rn2 = norm(r2);
+    if (!rn2) { h = '<span class="eyebrow">Resultado</span><div class="small">El punto P no puede estar en el centro del cable (r = 0).</div>'; }
+    else {
+      var rh2 = scale(r2, 1/rn2), lxr = cross(d.l, rh2), Bc = scale(lxr, MU0_4PI*d.I/(rn2*rn2)), Lm = norm(d.l);
+      h += '<span class="eyebrow">Resultado</span><div><span class="vec">B</span> = (μ₀/4π) I <span class="vec">ℓ</span> × r̂ / r²</div>';
+      h += '<div class="big">' + vecStr(Bc.map(clean)) + ' T</div>';
+      h += '<table><tr><td>r</td><td>' + fmt(rn2, 4) + ' m</td></tr><tr><td>r̂</td><td>' + vecStr(rh2) + '</td></tr><tr><td><span class="vec">ℓ</span> × r̂</td><td>' + vecStr(lxr.map(clean)) + '</td></tr><tr><td>|B|</td><td>' + fmt(norm(Bc)) + ' T</td></tr></table>';
+      if (norm(lxr) < 1e-12) h += '<div class="small muted">P está sobre la línea del cable: <span class="vec">ℓ</span> ∥ r̂, así que B = 0.</div>';
+      else h += '<div class="small muted">Prueba «Plano xy»: el campo en P se ve como ⊙ (sale) o ⊗ (entra).' + (Lm > rn2/2 ? ' Ojo: el cable no es corto frente a r, así que la fórmula es solo aproximada.' : '') + '</div>';
+    }
   }
   return h;
 }
@@ -1110,6 +1531,7 @@ function pintarLeyenda() {
   if (m === 'carga') items = [['--vcol', 'v velocidad'], ['--bcol', 'B campo'], ['--fcol', 'F fuerza']];
   else if (m === 'cable') items = [['--vcol', 'ℓ cable'], ['--bcol', 'B campo'], ['--fcol', 'F fuerza']];
   else if (m === 'espira') items = [['--vcol', 'corriente'], ['--bcol', 'B uniforme'], ['--fcol', 'F por segmento']];
+  else if (m === 'cablecampo') items = [['--vcol', 'ℓ cable'], ['--rcol', 'r posición'], ['--bcol', 'B en P']];
   else items = [['--vcol', 'v velocidad'], ['--rcol', 'r posición'], ['--bcol', 'B en P']];
   $('#legend').innerHTML = items.map(function (it) { return '<span><i style="background:var(' + it[0] + ')"></i>' + it[1] + '</span>'; }).join('');
 }
@@ -1243,8 +1665,9 @@ function dibujar() {
       }
     }
     var Fs = [], maxF = 0;
-    for (var s = 0; s < n; s++) { var l = sub(pts[(s + 1) % n], pts[s]), F = scale(cross(l, d.B), d.I); Fs.push(F); maxF = Math.max(maxF, norm(F)); }
-    for (var s2 = 0; s2 < n; s2++) {
+    var nseg = Lp.abierto ? n - 1 : n;
+    for (var s = 0; s < nseg; s++) { var l = sub(pts[(s + 1) % n], pts[s]), F = scale(cross(l, d.B), d.I); Fs.push(F); maxF = Math.max(maxF, norm(F)); }
+    for (var s2 = 0; s2 < nseg; s2++) {
       (function (s) {
         var a = sp[s], b = sp[(s + 1) % n], mid = scale(add(a, b), 0.5);
         add3(zOf(mid), function () {
@@ -1264,10 +1687,11 @@ function dibujar() {
       ctx.font = '600 14px "IBM Plex Sans", sans-serif'; ctx.fillText(Lp.nombres[i], q.x + 7, q.y - 7); ctx.restore();
     });
   } else {
+    var esCable = m === 'cablecampo', src = esCable ? d.l : d.v, sgnq = esCable ? (d.I < 0 ? -1 : 1) : (d.q < 0 ? -1 : 1);
     var Pp = d.P, rn = norm(Pp);
     if (rn) {
-      var kk = 1.55/rn, Ps = scale(Pp, kk), vh3 = unit(d.v);
-      var Bv = cross(d.v, unit(Pp)), bh3 = scale(unit(Bv), d.q < 0 ? -1 : 1);
+      var kk = 1.55/rn, Ps = scale(Pp, kk), vh3 = unit(src);
+      var Bv = cross(src, unit(Pp)), bh3 = scale(unit(Bv), sgnq);
       /* anillo de campo alrededor del eje de movimiento */
       if (norm(vh3)) {
         var cen = scale(vh3, dot(Ps, vh3)), rad = sub(Ps, cen), rr = norm(rad);
@@ -1279,21 +1703,28 @@ function dibujar() {
           for (var j = 1; j < 8; j++) {
             (function (ang) {
               var rp = add(scale(e1, Math.cos(ang)), scale(e2, Math.sin(ang))), p0 = add(cen, scale(rp, rr));
-              var tg = scale(cross(vh3, rp), d.q < 0 ? -1 : 1);
+              var tg = scale(cross(vh3, rp), sgnq);
               add3(zOf(p0), function () { flecha(p0, add(p0, scale(tg, 0.32)), bcol, 1.6, null, 0.4); });
             })(j/8*Math.PI*2);
           }
         }
       }
       add3(zOf(scale(Ps, 0.5)), function () { linea([0,0,0], Ps, rcol, 1.8, [6, 5]); texto(scale(Ps, 0.5), 'r', rcol, 'italic 600 16px "STIX Two Text", serif', 10, -8); });
-      if (norm(vh3)) add3(zOf(scale(vh3, 0.6)), function () { flecha([0,0,0], scale(vh3, 1.2), vcol, 3, 'v'); });
+      if (norm(vh3) && !esCable) add3(zOf(scale(vh3, 0.6)), function () { flecha([0,0,0], scale(vh3, 1.2), vcol, 3, 'v'); });
+      if (norm(vh3) && esCable) {
+        var half = Math.min(1.1, Math.max(0.35, norm(d.l)*kk/2)), cdir = scale(vh3, sgnq);
+        add3(zOf([0,0,0]), function () { linea(scale(cdir, -half), scale(cdir, half), vcol, 5); flecha(scale(cdir, -0.15), scale(cdir, half + 0.25), vcol, 3, 'I'); });
+      }
       if (norm(Bv) > 0) add3(zOf(add(Ps, scale(bh3, 0.5))), function () { flecha(Ps, add(Ps, scale(bh3, 0.95)), bcol, 3.5, 'B'); });
       items.sort(function (a, b) { return a.z - b.z; }).forEach(function (it) { it.fn(); });
       var o2 = P([0,0,0]), pp = P(Ps);
       ctx.save(); ctx.fillStyle = css('--surface'); ctx.strokeStyle = ink; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(o2.x, o2.y, 10, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = ink; ctx.font = '600 15px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(d.q < 0 ? '−' : '+', o2.x, o2.y + 0.5);
+      if (!esCable) {
+        ctx.beginPath(); ctx.arc(o2.x, o2.y, 10, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = ink; ctx.font = '600 15px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(d.q < 0 ? '−' : '+', o2.x, o2.y + 0.5);
+      }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillStyle = rcol; ctx.beginPath(); ctx.arc(pp.x, pp.y, 4.5, 0, Math.PI*2); ctx.fill();
       ctx.font = '600 15px "IBM Plex Sans", sans-serif'; ctx.fillText('P', pp.x - 12, pp.y - 12); ctx.restore();
     }
@@ -1321,10 +1752,12 @@ function cargarPreset(p) {
     var match = null;
     Object.keys(LOOPS).forEach(function (k) { if (JSON.stringify(LOOPS[k].puntos) === JSON.stringify(p.puntos)) match = k; });
     if (match) viz.espira.loop = match;
-    else { viz.espira.custom = {nombre:'Del ejercicio', puntos:p.puntos, nombres:p.nombres}; viz.espira.loop = 'custom'; }
+    else { viz.espira.custom = {nombre:'Del ejercicio', puntos:p.puntos, nombres:p.nombres, abierto:!!p.abierto}; viz.espira.loop = 'custom'; }
     viz.espira.I = p.I; viz.espira.B = p.B.slice();
   } else if (p.modo === 'campo') {
     viz.campo = {q:p.q, v:p.v.slice(), P:p.P.slice()};
+  } else if (p.modo === 'cablecampo') {
+    viz.cablecampo = {I:p.I, l:p.l.slice(), P:p.P.slice()};
   } else {
     viz[p.modo] = {q:p.q, v:p.v.slice(), B:p.B.slice()};
   }
@@ -1346,10 +1779,12 @@ function pintarResueltos() {
     var badge = r.pendiente ? '<span class="badge pend">Enunciado incompleto</span>' : prog.resueltos[r.id] ? '<span class="badge done">Revisado</span>' : '<span class="badge">' + total + ' pasos</span>';
     var h = '<article class="panel solved" id="sol-' + r.id + '"><div class="solved-head"><div class="meta"><span class="eyebrow">' + esc(temaNombre(r.tema)) + '</span><h3>' + r.titulo + '</h3></div>' + badge + '</div>';
     h += '<p class="statement">' + r.enunciado + '</p>';
+    if (r.figura) h += r.figura;
     if (r.pendiente) h += '<div class="note">' + r.pendiente + '</div>';
     if (k > 0) h += '<ol class="steps">' + r.pasos.slice(0, k).map(function (p) { return '<li><div>' + p + '</div></li>'; }).join('') + '</ol>';
     if (fin) {
       h += '<div class="answer">' + r.resultado + '</div>';
+      if (r.tip) h += '<div class="note tip"><b>Atajo.</b> ' + r.tip + '</div>';
       if (r.nota) h += '<div class="note"><b>Ojo con los apuntes.</b> ' + r.nota + '</div>';
     }
     h += '<div class="row">';
