@@ -1075,6 +1075,10 @@ CONCEPTOS.push(
    e:'Todos los lados dan ℓ × r̂ = −k̂ en el centro (como en la espira de 4 × 3 cm). Si la corriente fuera antihoraria, el campo saldría de la hoja.'},
   {p:'Un cable doblado (abierto) está en un campo magnético uniforme. Su fuerza total es igual a la de…', o:['Un cable recto que va del inicio al final','Cero, siempre','La del tramo más largo','La suma de las longitudes por B'], c:'Un cable recto que va del inicio al final',
    e:'Σ I ℓ × B = I (Σ ℓ) × B, y Σ ℓ es el vector del inicio al final. Si el cable se cierra en una espira, ese vector es cero y la fuerza también.'},
+  {p:'Para un cable de 4 cm, ¿desde qué distancia (frente a su centro) la fórmula de cable corto tiene menos del 1 % de error?', o:['Desde unos 14 cm (r > 3,5 L)','Desde 4 cm (r > L)','Desde 2 cm (r > L/2)','Desde cualquier distancia: es exacta'], c:'Desde unos 14 cm (r > 3,5 L)',
+   e:'Frente al centro del cable, exacto ÷ cable corto = 1 / √(1 + (L/2r)²). Para que sea mayor que 0,99 hace falta r > 3,5 L = 14 cm. Con r ≈ L el error ronda el 10 %.'},
+  {p:'Comparada con el valor exacto, la fórmula de cable corto da un campo…', o:['Siempre mayor (lo sobreestima)','Siempre menor','A veces mayor y a veces menor','Igual'], c:'Siempre mayor (lo sobreestima)',
+   e:'Pone todo el cable a la distancia mínima y con sen θ = 1. Los pedazos de los extremos en realidad están más lejos y se ven inclinados, así que aportan menos.'},
   {p:'Si te alejas al doble de distancia de un cable largo, el campo magnético…', o:['Se reduce a la mitad','Se reduce a la cuarta parte','No cambia','Se duplica'], c:'Se reduce a la mitad',
    e:'Para un cable largo, B = μ₀ I / (2π d): es inversamente proporcional a d.'},
   {p:'Si te alejas al doble de distancia de una carga en movimiento (o de un cable corto), el campo magnético…', o:['Se reduce a la cuarta parte','Se reduce a la mitad','No cambia','Se duplica'], c:'Se reduce a la cuarta parte',
@@ -1087,7 +1091,7 @@ FORMULAS.push(
   {tema:'fuerza', titulo:'Cable doblado en campo uniforme', f:V('F') + '<sub>total</sub> = I ' + V('ℓ') + '<sub>inicio→final</sub> × ' + V('B'),
    d:'La fuerza total es la de un cable recto del inicio al final. En una espira cerrada ese vector es cero.'},
   {tema:'cable', titulo:'Campo de un cable corto', f:V('B') + ' = (μ₀ / 4π) · I ' + V('ℓ') + ' × r̂ / r²',
-   d:'ℓ apunta como la corriente y r̂ va del cable al punto. Funciona bien cuando el cable es corto comparado con la distancia r.'},
+   d:'ℓ apunta como la corriente y r̂ va del cable al punto. Es una aproximación que siempre sobreestima el campo: con r ≈ L el error es de un 10 %, y con r > 3,5 L baja del 1 %.'},
   {tema:'cable', titulo:'Campo de un cable largo', f:'|' + V('B') + '| = μ₀ I / (2π d)',
    d:'d es la distancia perpendicular al cable. Dirección: Î × r̂ (pulgar en la corriente, los dedos rodean el cable).'},
   {tema:'cable', titulo:'Puntos y cruces', f:'⊙ = +k̂ &nbsp;&nbsp; ⊗ = −k̂',
@@ -1103,7 +1107,8 @@ FLASH.push(
   {id:'f22', a:'Campo en el centro de una espira horaria', b:'Entra en la hoja (−k̂)'},
   {id:'f23', a:'Campo de un cable en un punto de su propia línea', b:'Cero (ℓ ∥ r̂)'},
   {id:'f24', a:'Fuerza que q₁ ejerce sobre q₂', b:V('F') + '<sub>12</sub> = q₂ ' + V('v') + '<sub>2</sub> × ' + V('B') + '<sub>1</sub>'},
-  {id:'f25', a:'Fuerza total sobre un cable doblado en B uniforme', b:'La de un cable recto del inicio al final'}
+  {id:'f25', a:'Fuerza total sobre un cable doblado en B uniforme', b:'La de un cable recto del inicio al final'},
+  {id:'f26', a:'¿Cuándo es confiable la fórmula de cable corto?', b:'Cuando r > 3,5 L (error < 1 %). Con r ≈ L se equivoca ~10 %, siempre por exceso'}
 );
 
 /* --- Ejercicios resueltos nuevos --- */
@@ -1210,7 +1215,7 @@ RESUELTOS.push(
      'Suma: 2(1,5 × 10⁻⁵) + 2(3,56 × 10⁻⁵) = 1,01 × 10⁻⁴ T.'
    ],
    resultado:V('B') + ' = −1,01 × 10⁻⁴ k̂ T con la fórmula de cable corto (entra en la hoja). Valor exacto: −6,67 × 10⁻⁵ k̂ T.',
-   nota:'La fórmula de cable corto supone que el cable es mucho más corto que la distancia al punto. Aquí los lados (3 y 4 cm) son más largos que las distancias al centro (2 y 1,5 cm), y la fórmula sobreestima el campo en un 50 %. El valor exacto sale de la fórmula de un segmento recto finito, B = (μ₀ I / 4π d)(sen α₁ + sen α₂): 1,2 × 10⁻⁵ T por cada lado vertical y 2,13 × 10⁻⁵ T por cada horizontal, en total 6,67 × 10⁻⁵ T. La dirección (−k̂) es la misma con los dos métodos.',
+   nota:'La fórmula de cable corto supone que el cable es mucho más corto que la distancia al punto. Aquí los lados (3 y 4 cm) son más largos que las distancias al centro (2 y 1,5 cm), y la fórmula sobreestima el campo en un 50 %. El valor exacto sale de la fórmula de un segmento recto finito, B = (μ₀ I / 4π d)(sen α₁ + sen α₂): 1,2 × 10⁻⁵ T por cada lado vertical y 2,13 × 10⁻⁵ T por cada horizontal, en total 6,67 × 10⁻⁵ T. La dirección (−k̂) es la misma con los dos métodos. Regla práctica: la fórmula de cable corto es confiable (error menor al 1 %) cuando la distancia es más de 3,5 veces la longitud del cable.',
    preset:null},
 
   {id:'r-campo-p', tema:'cable', titulo:'Campo en P de un cable doblado (tablero)',
@@ -1521,7 +1526,7 @@ function resultadoViz() {
       h += '<div class="big">' + vecStr(Bc.map(clean)) + ' T</div>';
       h += '<table><tr><td>r</td><td>' + fmt(rn2, 4) + ' m</td></tr><tr><td>r̂</td><td>' + vecStr(rh2) + '</td></tr><tr><td><span class="vec">ℓ</span> × r̂</td><td>' + vecStr(lxr.map(clean)) + '</td></tr><tr><td>|B|</td><td>' + fmt(norm(Bc)) + ' T</td></tr></table>';
       if (norm(lxr) < 1e-12) h += '<div class="small muted">P está sobre la línea del cable: <span class="vec">ℓ</span> ∥ r̂, así que B = 0.</div>';
-      else h += '<div class="small muted">Prueba «Plano xy»: el campo en P se ve como ⊙ (sale) o ⊗ (entra).' + (Lm > rn2/2 ? ' Ojo: el cable no es corto frente a r, así que la fórmula es solo aproximada.' : '') + '</div>';
+      else h += '<div class="small muted">Prueba «Plano xy»: el campo en P se ve como ⊙ (sale) o ⊗ (entra).' + (rn2 < 3.5*Lm ? ' Ojo: r es menor que 3,5 veces el largo del cable, así que esta fórmula sobreestima el campo (frente al centro del cable, en un ' + fmt((Math.sqrt(1 + Math.pow(Lm/(2*rn2), 2)) - 1)*100, 2) + ' %).' : ' Como r > 3,5 ℓ, la fórmula de cable corto tiene menos del 1 % de error.') + '</div>';
     }
   }
   return h;
