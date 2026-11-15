@@ -153,6 +153,10 @@ ol.steps li > div{min-width:0}
 .answer{border-left:3px solid var(--fcol); padding:8px 12px; background:var(--surface-2); border-radius:0 8px 8px 0; font-weight:500}
 .fig{margin:0; overflow-x:auto}
 .fig svg{display:block; max-width:100%; height:auto}
+.rtable{border-collapse:collapse; font-size:.9rem; font-weight:400}
+.rtable th,.rtable td{padding:5px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top}
+.rtable th{font-size:.74rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600}
+.rtable td:nth-child(2){font-family:var(--font-mono); white-space:nowrap}
 .note.tip{border-left-color:var(--bcol); background:var(--surface-2)}
 .note{border-left:3px solid var(--warn); background:var(--warn-bg); color:var(--ink); padding:8px 12px; border-radius:0 8px 8px 0; font-size:.92rem}
 
@@ -803,15 +807,26 @@ var RESUELTOS = [
    ],
    resultado:V('F') + '<sub>total</sub> = 0',
    preset:{modo:'espira', I:5, puntos:[[0.4,0.4,0],[0.4,0,0],[0.4,0,0.4],[0,0.4,0.4]], B:[0,0.02,0], nombres:['a','b','c','d']}},
-  {id:'r-campo', tema:'campo', titulo:'Campo de una carga de 7 μC',
-   enunciado:'Una carga q = 7 μC está en el origen y se mueve con v = 4 × 10⁴ m/s en dirección del eje x. Halla el campo magnético que produce en el punto P.',
-   pendiente:'El enunciado de los apuntes no dice cuál es el punto P. Mientras tanto, practica este tipo de problema en «Campo B de una carga en movimiento», dentro de Práctica.',
+  {id:'r-campo', tema:'campo', titulo:'Campo de una carga de 7 μC en distintos puntos',
+   enunciado:'Una carga q = 7 μC está en el origen y se mueve con v = 4 × 10⁴ m/s en dirección +x. Los apuntes no dicen cuál es el punto P, así que calculamos el campo en seis puntos para comparar: P₁ (0; 3 cm), P₂ (0; −3 cm), P₃ (0; 0; 3 cm) sobre el eje z, P₄ (3 cm; 3 cm), P₅ (6 cm; 0) y P₆ (0; 6 cm).',
    pasos:[
-     V('B') + ' = (μ₀/4π) · q ' + V('v') + ' × r̂ / r², con μ₀ = 4π × 10⁻⁷ T·m/A.',
-     V('r') + ' es el vector posición desde la carga hasta el punto P; r̂ = ' + V('r') + '/r.'
+     'Fórmula: ' + V('B') + ' = (μ₀/4π) q ' + V('v') + ' × r̂ / r². El factor común es 10⁻⁷ · (7 × 10⁻⁶)(4 × 10⁴) = 2,8 × 10⁻⁸ T·m². Solo cambian r y la dirección î × r̂.',
+     'P₁ (0; 3 cm): r̂ = ĵ, r = 0,03 m. |B| = 2,8 × 10⁻⁸ / (0,03)² = 3,11 × 10⁻⁵ T. î × ĵ = k̂ → ' + V('B') + '₁ = 3,11 × 10⁻⁵ k̂ T (sale de la hoja).',
+     'P₂ (0; −3 cm): misma distancia, lado opuesto. î × (−ĵ) = −k̂ → ' + V('B') + '₂ = −3,11 × 10⁻⁵ k̂ T. Igual magnitud, sentido contrario.',
+     'P₃ (0; 0; 3 cm), sobre el eje z: î × k̂ = −ĵ → ' + V('B') + '₃ = −3,11 × 10⁻⁵ ĵ T. Comparado con P₁ y P₂, el campo gira: siempre es perpendicular a ' + V('v') + ' y a ' + V('r') + ', así que rodea la línea de movimiento.',
+     'P₄ (3 cm; 3 cm), a 45°: r = 4,24 cm, r̂ = 0,707 î + 0,707 ĵ y î × r̂ = 0,707 k̂. |B| = 2,8 × 10⁻⁸ / (0,0424)² × 0,707 = 1,1 × 10⁻⁵ T → ' + V('B') + '₄ = 1,1 × 10⁻⁵ k̂ T. Pierde por estar más lejos y por el ángulo (sen 45°).',
+     'P₅ (6 cm; 0), justo delante de la carga: r̂ = î, î × î = 0 → ' + V('B') + '₅ = 0. Una carga no produce campo magnético sobre la línea de su movimiento.',
+     'P₆ (0; 6 cm), el doble de lejos que P₁: |B| = 2,8 × 10⁻⁸ / (0,06)² = 7,78 × 10⁻⁶ T → ' + V('B') + '₆ = 7,78 × 10⁻⁶ k̂ T, la cuarta parte de ' + V('B') + '₁ (por el 1/r²).'
    ],
-   resultado:'Depende del punto P.',
-   preset:{modo:'campo', q:7e-6, v:[4e4,0,0], P:[0,1,0]}}
+   resultado:'<div class="table-scroll"><table class="rtable"><tr><th>Punto</th><th>' + V('B') + ' (T)</th><th>Qué muestra</th></tr>' +
+     '<tr><td>P₁ (0; 3 cm)</td><td>3,11 × 10⁻⁵ k̂</td><td>Perpendicular a ' + V('v') + ': campo máximo</td></tr>' +
+     '<tr><td>P₂ (0; −3 cm)</td><td>−3,11 × 10⁻⁵ k̂</td><td>Lado opuesto: sentido contrario</td></tr>' +
+     '<tr><td>P₃ (0; 0; 3 cm)</td><td>−3,11 × 10⁻⁵ ĵ</td><td>El campo rodea la línea de movimiento</td></tr>' +
+     '<tr><td>P₄ (3; 3 cm)</td><td>1,1 × 10⁻⁵ k̂</td><td>Más lejos y a 45°: más débil</td></tr>' +
+     '<tr><td>P₅ (6 cm; 0)</td><td>0</td><td>Sobre la línea del movimiento</td></tr>' +
+     '<tr><td>P₆ (0; 6 cm)</td><td>7,78 × 10⁻⁶ k̂</td><td>Doble distancia: la cuarta parte</td></tr></table></div>',
+   tip:'En el visualizador, modo «Campo de una carga», escribe cada punto P (en metros) y mira cómo cambia la flecha de ' + V('B') + '.',
+   preset:{modo:'campo', q:7e-6, v:[4e4,0,0], P:[0,0.03,0]}}
 ];
 
 /* ===== Fórmulas y tarjetas ===== */
@@ -903,6 +918,12 @@ function fig(cfg) {
     } else if (t === 'linea') {
       out.push(line(it.a, it.b, it.c || 'r', 1.6, true));
       if (it.label) out.push(txt((X(it.a[0]) + X(it.b[0]))/2 + (it.lx || 0), (Y(it.a[1]) + Y(it.b[1]))/2 + (it.ly || 0), it.label, it.c || 'r', 'middle', true));
+    } else if (t === 'alambre') {
+      var ax = X(it.p[0]), ay = Y(it.p[1]);
+      out.push('<circle cx="' + n2(ax) + '" cy="' + n2(ay) + '" r="9" style="fill:var(--surface);stroke:var(--vcol)" stroke-width="2"/>');
+      if (it.sale) out.push('<circle cx="' + n2(ax) + '" cy="' + n2(ay) + '" r="2.8" style="fill:var(--vcol)"/>');
+      else out.push('<path d="M' + n2(ax - 4.5) + ',' + n2(ay - 4.5) + ' L' + n2(ax + 4.5) + ',' + n2(ay + 4.5) + ' M' + n2(ax + 4.5) + ',' + n2(ay - 4.5) + ' L' + n2(ax - 4.5) + ',' + n2(ay + 4.5) + '" style="stroke:var(--vcol)" stroke-width="2"/>');
+      if (it.label) out.push(txt(ax + (it.lx || 0), ay + (it.ly || 18), it.label, 'v', it.anchor || 'middle'));
     } else if (t === 'texto') {
       out.push(txt(X(it.p[0]), Y(it.p[1]), it.s, it.c || 'm', it.anchor || 'middle', it.math));
     }
@@ -1055,6 +1076,26 @@ function genCableAbierto(r) {
   };
 }
 
+var RECTS = [[3,4],[4,3],[6,8],[8,6]];
+function genTresCables(r) {
+  var t = pick(r, RECTS), a = t[0]/100, b = t[1]/100, P = [a, b, 0];
+  var cables = [{n:'1', W:[0,0,0]}, {n:'2', W:[a,0,0]}, {n:'3', W:[0,b,0]}].map(function (c) {
+    c.I = randInt(r, 1, 6); c.sale = r() < 0.5; return c;
+  });
+  var tot = [0,0,0], pasos = ['Para cada cable: |B| = 2 × 10⁻⁷ · I / d y dirección Î × r̂, con r̂ del cable hacia P. Al final se suman las componentes.'];
+  cables.forEach(function (c) {
+    var rv = sub(P, c.W), d = norm(rv), rh = scale(rv, 1/d), Ih = [0, 0, c.sale ? 1 : -1], dir = cross(Ih, rh), Bm = 2e-7*c.I/d, B = scale(dir, Bm);
+    tot = add(tot, B);
+    pasos.push('Cable ' + c.n + ' en ' + posCm(c.W) + ', ' + c.I + ' A ' + (c.sale ? '⊙' : '⊗') + ': d = ' + cm(d) + ', r̂ = ' + axisName(rh) + '. |B| = ' + fmt(Bm) + ' T; ' + (c.sale ? 'k̂' : '−k̂') + ' × r̂ = ' + axisName(dir.map(clean)) + ' → ' + V('B') + c.n + ' = ' + vecStr(B.map(clean)) + ' T');
+  });
+  pasos.push('Suma por componentes: ' + V('B') + ' = ' + vecStr(tot.map(clean)) + ' T');
+  return {
+    enunciado:'Tres cables largos, perpendiculares a la hoja, pasan por (0; 0), (' + t[0] + ' cm; 0) y (0; ' + t[1] + ' cm). Llevan ' +
+      cables.map(function (c) { return c.I + ' A ' + (c.sale ? 'saliendo (⊙)' : 'entrando (⊗)'); }).join(', ') + ', en ese orden. Halla el campo magnético total en P(' + t[0] + ' cm; ' + t[1] + ' cm).',
+    respuesta:tot.map(clean), unidad:'T', pasos:pasos, preset:null
+  };
+}
+
 /* Insertar los tipos nuevos junto a los de su tema */
 (function () {
   function after(id, g) { for (var i = 0; i < GENERADORES.length; i++) if (GENERADORES[i].id === id) { GENERADORES.splice(i + 1, 0, g); return; } GENERADORES.push(g); }
@@ -1064,6 +1105,7 @@ function genCableAbierto(r) {
   GENERADORES.push({id:'dirCable', tema:'cable', nombre:'Dirección del campo (⊙ / ⊗)', tipo:'mc', gen:genDirCable});
   GENERADORES.push({id:'cableCorto', tema:'cable', nombre:'Campo de un cable corto', tipo:'vector', gen:genCableCorto});
   GENERADORES.push({id:'cableLargo', tema:'cable', nombre:'Campo de un cable largo', tipo:'vector', gen:genCableLargo});
+  GENERADORES.push({id:'tresCables', tema:'cable', nombre:'Varios cables largos', tipo:'vector', gen:genTresCables});
 })();
 
 CONCEPTOS.push(
@@ -1079,6 +1121,8 @@ CONCEPTOS.push(
    e:'Frente al centro del cable, exacto ÷ cable corto = 1 / √(1 + (L/2r)²). Para que sea mayor que 0,99 hace falta r > 3,5 L = 14 cm. Con r ≈ L el error ronda el 10 %.'},
   {p:'Comparada con el valor exacto, la fórmula de cable corto da un campo…', o:['Siempre mayor (lo sobreestima)','Siempre menor','A veces mayor y a veces menor','Igual'], c:'Siempre mayor (lo sobreestima)',
    e:'Pone todo el cable a la distancia mínima y con sen θ = 1. Los pedazos de los extremos en realidad están más lejos y se ven inclinados, así que aportan menos.'},
+  {p:'Una carga se mueve en dirección +x. ¿Cuánto vale su campo magnético en un punto del eje x, delante de ella?', o:['Cero','El máximo','La mitad del máximo','Depende del signo de la carga'], c:'Cero',
+   e:'En ese punto r̂ es paralelo a v, así que v × r̂ = 0. La carga solo produce campo a los lados de su línea de movimiento.'},
   {p:'Si te alejas al doble de distancia de un cable largo, el campo magnético…', o:['Se reduce a la mitad','Se reduce a la cuarta parte','No cambia','Se duplica'], c:'Se reduce a la mitad',
    e:'Para un cable largo, B = μ₀ I / (2π d): es inversamente proporcional a d.'},
   {p:'Si te alejas al doble de distancia de una carga en movimiento (o de un cable corto), el campo magnético…', o:['Se reduce a la cuarta parte','Se reduce a la mitad','No cambia','Se duplica'], c:'Se reduce a la cuarta parte',
@@ -1233,6 +1277,25 @@ RESUELTOS.push(
    ],
    resultado:V('B') + '<sub>P</sub> = −4,5 × 10⁻⁵ k̂ T (entra en la hoja), con la fórmula de cable corto que se usa en clase.',
    nota:'Este es el resultado que pide la clase, pero es aproximado. Como en la espira de 4 × 3 cm, los tramos no son cortos frente a la distancia a P, y la fórmula de cable corto da el doble del valor exacto. Con la fórmula de segmento finito: B<sub>bc</sub> = B<sub>de</sub> = 8,94 × 10⁻⁶ T y B<sub>cd</sub> = 4,47 × 10⁻⁶ T, en total 2,24 × 10⁻⁵ T.',
+   preset:null}
+);
+RESUELTOS.push(
+  {id:'r-tres-cables', tema:'cable', titulo:'Tres cables largos (ejemplo tipo tablero)',
+   enunciado:'Ejemplo del mismo tipo que el ejercicio del tablero. Tres cables largos, perpendiculares a la hoja, pasan por las esquinas de un rectángulo de 3 cm × 4 cm: el cable 1 en el origen lleva 2 A saliendo de la hoja (⊙); el cable 2 en (3 cm; 0) lleva 3 A saliendo (⊙); el cable 3 en (0; 4 cm) lleva 4 A entrando (⊗). Halla el campo magnético total en la cuarta esquina, P(3 cm; 4 cm).',
+   figura:fig({x:[-1.6, 6.4], y:[-1.6, 5.4], u:30, alt:'Tres cables perpendiculares a la hoja en las esquinas de un rectángulo; P en la cuarta esquina', items:[
+     {t:'linea', a:[0,0], b:[3,4], c:'m'}, {t:'linea', a:[3,0], b:[3,4], c:'m'}, {t:'linea', a:[0,4], b:[3,4], c:'m'},
+     {t:'alambre', p:[0,0], sale:true, label:'1: 2 A', ly:20}, {t:'alambre', p:[3,0], sale:true, label:'2: 3 A', ly:20}, {t:'alambre', p:[0,4], sale:false, label:'3: 4 A', ly:-18},
+     {t:'punto', p:[3,4], c:'r', label:'P', lx:12, ly:-10},
+     {t:'texto', p:[1.5, 4.45], s:'3 cm'}, {t:'texto', p:[3.25, 2], s:'4 cm', anchor:'start'}, {t:'texto', p:[1.1, 2.3], s:'5 cm', anchor:'end'}]}),
+   pasos:[
+     'Para un cable largo: |B| = μ₀ I / (2π d) = 2 × 10⁻⁷ · I / d. Dirección: Î × r̂, con r̂ del cable hacia P (⊙ es +k̂, ⊗ es −k̂).',
+     'Cable 1: ' + V('r') + ' = 3 î + 4 ĵ cm, d = 5 cm, r̂ = 0,6 î + 0,8 ĵ. |B₁| = 2 × 10⁻⁷ · 2 / 0,05 = 8 × 10⁻⁶ T. k̂ × (0,6 î + 0,8 ĵ) = 0,6 ĵ − 0,8 î → ' + V('B') + '₁ = −6,4 × 10⁻⁶ î + 4,8 × 10⁻⁶ ĵ T.',
+     'Cable 2: P está justo arriba, r̂ = ĵ, d = 4 cm. |B₂| = 2 × 10⁻⁷ · 3 / 0,04 = 1,5 × 10⁻⁵ T. k̂ × ĵ = −î → ' + V('B') + '₂ = −1,5 × 10⁻⁵ î + 0 ĵ T.',
+     'Cable 3: P está a la derecha, r̂ = î, d = 3 cm. |B₃| = 2 × 10⁻⁷ · 4 / 0,03 = 2,67 × 10⁻⁵ T. (−k̂) × î = −ĵ → ' + V('B') + '₃ = 0 î − 2,67 × 10⁻⁵ ĵ T.',
+     'Suma por componentes. î: −6,4 × 10⁻⁶ − 1,5 × 10⁻⁵ + 0 = −2,14 × 10⁻⁵. ĵ: 4,8 × 10⁻⁶ + 0 − 2,67 × 10⁻⁵ = −2,19 × 10⁻⁵.'
+   ],
+   resultado:V('B') + ' = −2,14 × 10⁻⁵ î − 2,19 × 10⁻⁵ ĵ T  (|B| = 3,06 × 10⁻⁵ T)',
+   tip:'Organiza la suma como en el tablero: una fila por cable y una columna para cada componente (î, ĵ). Así no se pierde ningún signo. El cable 1 de este ejemplo da el mismo B₁ que aparece en el tablero; los otros dos cables son inventados.',
    preset:null}
 );
 /* Ordenar los resueltos por tema, conservando el orden dentro de cada tema */
