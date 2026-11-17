@@ -14,6 +14,8 @@ Guía de estudio interactiva de electromagnetismo, construida a partir de los ap
 ## Temas
 - Fuerza magnética (carga, cable, espiras, cables doblados, fuerza entre dos cargas)
 - Campo magnético de una carga en movimiento
-- Campo magnético de un cable con corriente (corto y largo)
+- Campo magnético de cables y bobinas (cable corto, cable largo, fuerza entre corrientes, bobina circular)
+- Inducción electromagnética (flujo, Faraday, Lenz, fem de movimiento)
+- Guía de estudio No. 3 (Corte 3), resuelta paso a paso
 
 Todo está en un solo archivo, `index.html`, sin dependencias de compilación.

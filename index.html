@@ -916,8 +916,10 @@ function fig(cfg) {
         else out.push('<path d="M' + n2(x - 4.5) + ',' + n2(y - 4.5) + ' L' + n2(x + 4.5) + ',' + n2(y + 4.5) + ' M' + n2(x + 4.5) + ',' + n2(y - 4.5) + ' L' + n2(x - 4.5) + ',' + n2(y + 4.5) + '" style="stroke:var(--bcol)" stroke-width="1.6"/>');
       });
     } else if (t === 'linea') {
-      out.push(line(it.a, it.b, it.c || 'r', 1.6, true));
+      out.push(line(it.a, it.b, it.c || 'r', it.w || 1.6, !it.solid));
       if (it.label) out.push(txt((X(it.a[0]) + X(it.b[0]))/2 + (it.lx || 0), (Y(it.a[1]) + Y(it.b[1]))/2 + (it.ly || 0), it.label, it.c || 'r', 'middle', true));
+    } else if (t === 'elipse') {
+      out.push('<ellipse cx="' + n2(X(it.p[0])) + '" cy="' + n2(Y(it.p[1])) + '" rx="' + n2(it.rx*u) + '" ry="' + n2(it.ry*u) + '" style="fill:none;stroke:' + col(it.c || 'v') + '" stroke-width="2.2"/>');
     } else if (t === 'alambre') {
       var ax = X(it.p[0]), ay = Y(it.p[1]);
       out.push('<circle cx="' + n2(ax) + '" cy="' + n2(ay) + '" r="9" style="fill:var(--surface);stroke:var(--vcol)" stroke-width="2"/>');
@@ -1298,6 +1300,317 @@ RESUELTOS.push(
    tip:'Organiza la suma como en el tablero: una fila por cable y una columna para cada componente (î, ĵ). Así no se pierde ningún signo. El cable 1 de este ejemplo da el mismo B₁ que aparece en el tablero; los otros dos cables son inventados.',
    preset:null}
 );
+/* =====================================================================
+   Guía de estudio No. 3 (UTS, Corte 3): fuerza y campo magnético,
+   bobinas e inducción
+   ===================================================================== */
+(function () { for (var i = 0; i < TEMAS.length; i++) if (TEMAS[i].id === 'cable') { TEMAS[i].nombre = 'Campo de cables y bobinas'; TEMAS[i].resumen = 'El campo B de cables cortos, cables largos y bobinas, y la fuerza entre corrientes'; } })();
+TEMAS.push({id:'induccion', nombre:'Inducción electromagnética', resumen:'Flujo magnético, ley de Faraday, ley de Lenz y fem de movimiento'});
+var MU0 = 4*Math.PI*1e-7;
+
+/* --- Generadores --- */
+function genFem(r) {
+  var Lc = randInt(r, 1, 10)*5, L = Lc/100, v = pick(r, [0.5, 1, 1.5, 2, 3, 4, 5, 8, 10]), B = pick(r, [0.01, 0.02, 0.05, 0.1, 0.2, 0.25, 0.4, 0.5]);
+  var eps = B*L*v, pideI = r() < 0.45, R = pick(r, [0.5, 1, 2, 4, 5, 10]);
+  var pasos = [
+    'Al moverse la barra cambia el área del circuito, y con ella el flujo Φ = B · A. Ese cambio induce una fem (ley de Faraday).',
+    'Para una barra perpendicular a ' + V('B') + ' y a ' + V('v') + ': ε = B ℓ v.',
+    'ε = (' + fmt(B) + ')(' + fmt(L) + ')(' + fmt(v) + ') = ' + fmt(eps) + ' V'
+  ];
+  if (pideI) pasos.push('Corriente inducida (ley de Ohm): I = ε / R = ' + fmt(eps) + ' / ' + fmt(R) + ' = ' + fmt(eps/R) + ' A');
+  return {
+    enunciado:'Una barra metálica de ' + Lc + ' cm se desliza a ' + fmt(v) + ' m/s sobre un conductor en forma de U. El circuito está en un campo uniforme de ' + fmt(B) + ' T perpendicular a él.' +
+      (pideI ? ' La resistencia total del circuito es ' + fmt(R) + ' Ω. ¿Qué corriente se induce?' : ' ¿Cuál es la fem inducida?'),
+    respuesta:[pideI ? eps/R : eps], unidad:pideI ? 'A' : 'V', etiqueta:pideI ? 'I' : 'ε', pasos:pasos, preset:null
+  };
+}
+
+function genSentidoInducido(r) {
+  var quieta = r() < 0.1, vx = quieta ? 0 : (r() < 0.5 ? 1 : -1), bz = r() < 0.5 ? 1 : -1;
+  var fy = vx*(-bz); /* (vx î) × (bz k̂) = −vx·bz ĵ */
+  var opciones = ['Horario', 'Antihorario', 'No hay corriente inducida'];
+  var correcta = quieta ? opciones[2] : (fy > 0 ? opciones[1] : opciones[0]);
+  var crece = vx > 0;
+  var pasos = quieta ? [
+    'Si la barra está quieta, el área no cambia y el flujo Φ = B · A es constante.',
+    'Sin cambio de flujo no hay fem inducida (ley de Faraday), así que no hay corriente.'
+  ] : [
+    'La barra ' + (crece ? 'se aleja del lado cerrado, así que el área crece' : 'se acerca al lado cerrado, así que el área disminuye') + '. El flujo ' + (bz > 0 ? 'que sale' : 'que entra') + ' ' + (crece ? 'aumenta' : 'disminuye') + '.',
+    'Ley de Lenz: la corriente inducida crea un campo que se opone al cambio, así que su campo dentro del circuito ' + ((crece) === (bz > 0) ? 'entra en la hoja' : 'sale de la hoja') + '.',
+    'Una corriente ' + (correcta === 'Horario' ? 'horaria' : 'antihoraria') + ' produce un campo que ' + (correcta === 'Horario' ? 'entra' : 'sale') + ' en el interior del circuito.',
+    'Comprobación con la fuerza sobre las cargas de la barra: q ' + V('v') + ' × ' + V('B') + ' = q (' + (vx > 0 ? 'î' : '−î') + ') × (' + (bz > 0 ? 'k̂' : '−k̂') + ') = ' + (fy > 0 ? 'q ĵ' : '−q ĵ') + ': la corriente ' + (fy > 0 ? 'sube' : 'baja') + ' por la barra.',
+    'Respuesta: ' + correcta + '.'
+  ];
+  return {
+    enunciado:'Una barra se desliza sobre un conductor en forma de U. El lado cerrado de la U está a la izquierda y la barra a la derecha. El campo magnético ' + (bz > 0 ? 'sale de la hoja (⊙)' : 'entra en la hoja (⊗)') + '. ' +
+      (quieta ? 'La barra está quieta.' : 'La barra se mueve hacia la ' + (vx > 0 ? 'derecha' : 'izquierda') + '.') + ' ¿En qué sentido circula la corriente inducida?',
+    opciones:opciones, correcta:correcta, pasos:pasos, preset:null
+  };
+}
+
+function genBobina(r) {
+  var N = pick(r, [1, 10, 20, 50, 100, 200]), R = pick(r, [0.05, 0.1, 0.2, 0.3, 0.6]), I = randInt(r, 1, 10);
+  var k = pick(r, [0, 0, 0.75, 4/3, 1]), x = R*k;
+  var B = MU0*N*I*R*R/(2*Math.pow(R*R + x*x, 1.5));
+  var nom = N === 1 ? 'Una espira circular' : 'Una bobina de ' + N + ' espiras circulares';
+  var pasos;
+  if (x === 0) pasos = [
+    'En el centro (x = 0) la fórmula del eje se simplifica: B = μ₀ N I / (2R).',
+    'B = (4π × 10⁻⁷)(' + N + ')(' + I + ') / (2 · ' + fmt(R) + ') = ' + fmt(B) + ' T',
+    'Dirección: a lo largo del eje, según la mano derecha (dedos con la corriente, pulgar con B).'
+  ];
+  else pasos = [
+    'En el eje: B = μ₀ N I R² / [2 (R² + x²)<sup>3/2</sup>].',
+    'R² + x² = (' + fmt(R) + ')² + (' + fmt(x) + ')² = ' + fmt(R*R + x*x) + ' m² → (R² + x²)<sup>3/2</sup> = ' + fmt(Math.pow(R*R + x*x, 1.5)) + ' m³.',
+    'B = (4π × 10⁻⁷)(' + N + ')(' + I + ')(' + fmt(R) + ')² / (2 · ' + fmt(Math.pow(R*R + x*x, 1.5)) + ') = ' + fmt(B) + ' T',
+    'En el centro sería ' + fmt(MU0*N*I/(2*R)) + ' T: el campo se debilita al alejarse por el eje.'
+  ];
+  return {
+    enunciado:nom + ' de radio ' + fmt(R) + ' m lleva ' + I + ' A. Calcula la magnitud del campo magnético ' + (x === 0 ? 'en su centro.' : 'en un punto de su eje a ' + fmt(x) + ' m del centro.'),
+    respuesta:[B], unidad:'T', etiqueta:'|B|', pasos:pasos, preset:null
+  };
+}
+
+function genCableEspira(r) {
+  var I1 = randInt(r, 1, 10), I2 = randInt(r, 1, 10), c = randInt(r, 2, 10)/100, a = randInt(r, 2, 15)/100, L = randInt(r, 10, 50)/100;
+  var sube = r() < 0.5, horario = r() < 0.5;
+  /* lado cercano (izquierdo): horario → sube */
+  var paralelo = (horario === sube);
+  var Fc = 2e-7*I1*I2*L/c, Fl = 2e-7*I1*I2*L/(c + a), Fn = Fc - Fl, sgn = paralelo ? -1 : 1;
+  return {
+    enunciado:'Un alambre largo y recto (sobre el eje y) lleva ' + I1 + ' A ' + (sube ? 'hacia arriba' : 'hacia abajo') + '. A su derecha, en el mismo plano, hay un lazo rectangular con ' + I2 + ' A en sentido ' + (horario ? 'horario' : 'antihorario') +
+      '. El lado cercano está a c = ' + cm(c) + ' del alambre, el lazo mide a = ' + cm(a) + ' de ancho y ℓ = ' + cm(L) + ' de alto. Halla la fuerza neta sobre el lazo.',
+    respuesta:[sgn*Fn, 0, 0], unidad:'N',
+    pasos:[
+      'Solo cuentan los lados paralelos al alambre: las fuerzas sobre los lados de arriba y de abajo son iguales y opuestas, y se cancelan.',
+      'Lado cercano: su corriente va ' + (horario ? 'hacia arriba' : 'hacia abajo') + ', ' + (paralelo ? 'paralela' : 'antiparalela') + ' a la del alambre → ' + (paralelo ? 'atracción' : 'repulsión') + '. F = μ₀ I₁ I₂ ℓ / (2π c) = 2 × 10⁻⁷ (' + I1 + ')(' + I2 + ')(' + fmt(L) + ') / ' + fmt(c) + ' = ' + fmt(Fc) + ' N.',
+      'Lado lejano: corriente opuesta, así que la fuerza va al revés y es más débil: F = 2 × 10⁻⁷ (' + I1 + ')(' + I2 + ')(' + fmt(L) + ') / ' + fmt(c + a) + ' = ' + fmt(Fl) + ' N.',
+      'Fuerza neta: ' + fmt(Fc) + ' − ' + fmt(Fl) + ' = ' + fmt(Fn) + ' N, ' + (paralelo ? 'hacia el alambre (−î)' : 'alejándose del alambre (+î)') + '. Gana el lado cercano.',
+      V('F') + ' = ' + vecStr([sgn*Fn, 0, 0]) + ' N'
+    ],
+    preset:null
+  };
+}
+
+(function () {
+  function after(id, g) { for (var i = 0; i < GENERADORES.length; i++) if (GENERADORES[i].id === id) { GENERADORES.splice(i + 1, 0, g); return; } GENERADORES.push(g); }
+  after('tresCables', {id:'cableEspira', tema:'cable', nombre:'Cable largo y lazo rectangular', tipo:'vector', gen:genCableEspira});
+  after('cableEspira', {id:'bobina', tema:'cable', nombre:'Campo de una bobina circular', tipo:'escalar', gen:genBobina});
+  GENERADORES.push({id:'fem', tema:'induccion', nombre:'Fem de movimiento ε = Bℓv', tipo:'escalar', gen:genFem});
+  GENERADORES.push({id:'sentidoInducido', tema:'induccion', nombre:'Sentido de la corriente inducida', tipo:'mc', gen:genSentidoInducido});
+})();
+
+CONCEPTOS.push(
+  {p:'Dos cables largos y paralelos llevan corrientes en el mismo sentido. ¿Qué pasa entre ellos?', o:['Se atraen','Se repelen','No interactúan','Giran'], c:'Se atraen',
+   e:'Cada cable siente el campo del otro. Con corrientes en el mismo sentido, I ℓ × B apunta hacia el otro cable: se atraen. En sentidos opuestos se repelen.'},
+  {p:'Según la ley de Lenz, la corriente inducida…', o:['Se opone al cambio de flujo que la produce','Refuerza el cambio de flujo','Siempre circula en sentido horario','Solo aparece si el flujo es constante'], c:'Se opone al cambio de flujo que la produce',
+   e:'Si el flujo aumenta, la corriente inducida crea un campo en sentido contrario; si disminuye, crea un campo en el mismo sentido para "sostenerlo".'},
+  {p:'Si una barra se desliza al doble de velocidad sobre los mismos rieles, la fem inducida…', o:['Se duplica','Se reduce a la mitad','No cambia','Se cuadruplica'], c:'Se duplica',
+   e:'ε = B ℓ v es proporcional a v.'},
+  {p:'¿Dónde es más intenso el campo de una espira circular?', o:['En su centro','Lejos sobre su eje','Es igual en todo el eje','Justo afuera del alambre, hacia afuera de la espira'], c:'En su centro',
+   e:'En el eje, B = μ₀ N I R² / [2 (R² + x²)<sup>3/2</sup>] es máximo en x = 0 y disminuye al alejarse.'}
+);
+
+FORMULAS.push(
+  {tema:'fuerza', titulo:'Fuerza de Lorentz (campo eléctrico y magnético)', f:V('F') + ' = q (' + V('E') + ' + ' + V('v') + ' × ' + V('B') + ')',
+   d:'Si en la región hay campo eléctrico y magnético, la fuerza total es la suma de la fuerza eléctrica qE y la magnética q v × B.'},
+  {tema:'cable', titulo:'Fuerza entre corrientes paralelas', f:'F = μ₀ I₁ I₂ ℓ / (2π d)',
+   d:'Fuerza sobre un tramo de longitud ℓ paralelo a un cable largo, a distancia d. Corrientes en el mismo sentido se atraen; en sentidos opuestos se repelen.'},
+  {tema:'cable', titulo:'Campo en el eje de una espira o bobina circular', f:'B = μ₀ N I R² / [2 (R² + x²)<sup>3/2</sup>]',
+   d:'N espiras de radio R, punto a distancia x del centro sobre el eje. B apunta a lo largo del eje (mano derecha: dedos con la corriente, pulgar con B).'},
+  {tema:'cable', titulo:'Campo en el centro de una espira o bobina', f:'B = μ₀ N I / (2R)',
+   d:'Es la fórmula del eje con x = 0. Ahí el campo es máximo.'},
+  {tema:'induccion', titulo:'Flujo magnético', f:'Φ = B A cos θ',
+   d:'θ es el ángulo entre B y la perpendicular a la superficie. Se mide en weber: 1 Wb = 1 T·m².'},
+  {tema:'induccion', titulo:'Ley de Faraday', f:'ε = −N dΦ/dt',
+   d:'Un cambio de flujo induce una fem. N es el número de espiras; el signo menos expresa la ley de Lenz.'},
+  {tema:'induccion', titulo:'Fem de movimiento', f:'ε = B ℓ v',
+   d:'Barra de longitud ℓ que se mueve con velocidad v, con B, ℓ y v perpendiculares entre sí. La corriente es I = ε / R.'},
+  {tema:'induccion', titulo:'Ley de Lenz', f:'La corriente inducida se opone al cambio',
+   d:'Si el flujo crece, la corriente crea un campo en contra; si el flujo disminuye, crea un campo a favor.'}
+);
+
+FLASH.push(
+  {id:'f27', a:'Fuerza total sobre una carga con E y B', b:V('F') + ' = q (' + V('E') + ' + ' + V('v') + ' × ' + V('B') + ')'},
+  {id:'f28', a:'Corrientes paralelas en el mismo sentido', b:'Se atraen (en sentidos opuestos se repelen)'},
+  {id:'f29', a:'Fuerza entre corrientes paralelas', b:'F = μ₀ I₁ I₂ ℓ / (2π d)'},
+  {id:'f30', a:'Campo en el centro de una bobina de N espiras', b:'B = μ₀ N I / (2R)'},
+  {id:'f31', a:'Campo en el eje de una bobina', b:'B = μ₀ N I R² / [2 (R² + x²)<sup>3/2</sup>]'},
+  {id:'f32', a:'Fem de una barra que se desliza', b:'ε = B ℓ v'},
+  {id:'f33', a:'Ley de Lenz', b:'La corriente inducida se opone al cambio de flujo'},
+  {id:'f34', a:'Ley de Faraday', b:'ε = −N dΦ/dt'}
+);
+
+/* --- Figuras auxiliares --- */
+function proyCubo(p) { return [p[0] - 0.55*p[2], p[1] - 0.42*p[2]]; }
+var CUBO = (function () {
+  var L = 3, P = {a:[0,0,L], b:[0,L,L], c:[L,L,0], d:[L,0,L], e:[L,0,0], f:[0,0,0]};
+  var esq = [], it = [];
+  [0, L].forEach(function (x) { [0, L].forEach(function (y) { [0, L].forEach(function (z) { esq.push([x, y, z]); }); }); });
+  esq.forEach(function (p, i) { esq.forEach(function (q, j) {
+    if (j > i && (p[0] !== q[0]) + (p[1] !== q[1]) + (p[2] !== q[2]) === 1) it.push({t:'linea', a:proyCubo(p), b:proyCubo(q), c:'m'});
+  }); });
+  it.push({t:'linea', a:[0,0], b:[0,4.3], c:'m'}, {t:'texto', p:[0.3, 4.3], s:'y', math:true, anchor:'start'});
+  it.push({t:'linea', a:[3,0], b:[5.6,0], c:'m'}, {t:'texto', p:[5.8, -0.3], s:'x', math:true});
+  it.push({t:'linea', a:proyCubo([0,0,3]), b:proyCubo([0,0,4.6]), c:'m'}, {t:'texto', p:proyCubo([0,0,4.9]), s:'z', math:true});
+  var k = 'abcdef';
+  for (var i = 0; i < 5; i++) it.push({t:'seg', a:proyCubo(P[k[i]]), b:proyCubo(P[k[i + 1]])});
+  var off = {a:[-0.35,-0.15], b:[-0.35,0.25], c:[0.35,0.25], d:[0,-0.45], e:[0.3,-0.4], f:[-0.35,0.25]};
+  k.split('').forEach(function (n) { var q = proyCubo(P[n]); it.push({t:'texto', p:[q[0] + off[n][0], q[1] + off[n][1]], s:n, c:'i'}); });
+  it.push({t:'flecha', a:[3.5, 0.6], b:[4.9, 0.6], c:'b', label:'B', ly:-12});
+  it.push({t:'texto', p:[1.5, -2.25], s:'Lado: 75 cm · I = 6 A'});
+  return it;
+})();
+
+RESUELTOS.push(
+  {id:'g3-1', tema:'fuerza', fuente:'Guía 3 · Ejercicio 1', titulo:'Protón en un campo a 70° del eje x',
+   enunciado:'Un protón se mueve a 5 × 10⁶ m/s a lo largo del eje x. Entra en una región con un campo de 5 T que está en el plano xy y forma 70° con el eje x. Calcula la fuerza magnética.',
+   figura:fig({x:[-1, 6.6], y:[-1.6, 4.4], u:30, ejes:true, alt:'Velocidad sobre el eje x y campo B a 70° en el plano xy', items:[
+     {t:'flecha', a:[0,0], b:[3.4,0], c:'v', label:'v', ly:-12},
+     {t:'flecha', a:[0,0], b:[3.5*Math.cos(70*Math.PI/180), 3.5*Math.sin(70*Math.PI/180)], c:'b', label:'B', lx:12},
+     {t:'texto', p:[0.85, 0.75], s:'70°', math:true},
+     {t:'carga', p:[0,0], s:'+', label:'protón', lx:-14, ly:-14, anchor:'end'},
+     {t:'texto', p:[3.3, -0.85], s:'F sale de la hoja (+k̂, ⊙)', c:'f'}]}),
+   pasos:[
+     'Escribe los vectores: ' + V('v') + ' = 5 × 10⁶ î m/s y ' + V('B') + ' = 5 cos 70° î + 5 sen 70° ĵ = 1,71 î + 4,70 ĵ T.',
+     'La componente î de ' + V('B') + ' es paralela a ' + V('v') + ' y no aporta (î × î = 0). Solo cuenta B<sub>y</sub>: î × ĵ = k̂.',
+     V('F') + ' = q v B<sub>y</sub> k̂ = (1,6 × 10⁻¹⁹)(5 × 10⁶)(5 sen 70°) k̂.',
+     'Con la magnitud: |F| = q v B sen 70° = (1,6 × 10⁻¹⁹)(5 × 10⁶)(5)(0,940) = 3,76 × 10⁻¹² N.'
+   ],
+   resultado:V('F') + ' = 3,76 × 10⁻¹² k̂ N (en +z, como en la figura de la guía)',
+   preset:{modo:'carga', q:1.6e-19, v:[5e6,0,0], B:[5*Math.cos(70*Math.PI/180), 5*Math.sin(70*Math.PI/180), 0]}},
+
+  {id:'g3-2', tema:'fuerza', fuente:'Guía 3 · Ejercicio 2', titulo:'Carga con v y B en componentes',
+   enunciado:'Una carga positiva q = 3,2 × 10⁻¹⁹ C se mueve con ' + V('v') + ' = 2î + 3ĵ − k̂ m/s en una región donde hay un campo magnético ' + V('B') + ' = 2î + 4ĵ + k̂ T y también un campo eléctrico. Calcula la fuerza sobre la carga en notación de vectores unitarios.',
+   pasos:[
+     'Fuerza magnética: ' + V('F') + '<sub>B</sub> = q ' + V('v') + ' × ' + V('B') + '.',
+     'Determinante:' + detHTML([2,3,-1], [2,4,1], V('v') + ' × ' + V('B') + ' ='),
+     'Expande por la primera fila:' + expansionHTML([2,3,-1], [2,4,1]),
+     'Multiplica por q: ' + V('F') + '<sub>B</sub> = 3,2 × 10⁻¹⁹ (7î − 4ĵ + 2k̂).'
+   ],
+   resultado:V('F') + '<sub>B</sub> = 2,24 × 10⁻¹⁸ î − 1,28 × 10⁻¹⁸ ĵ + 6,4 × 10⁻¹⁹ k̂ N',
+   notaTitulo:'Ojo con la guía.',
+   nota:'El enunciado dice que también hay campo eléctrico, pero no da su valor; por eso aquí solo está la fuerza magnética. La fuerza total sería ' + V('F') + ' = q(' + V('E') + ' + ' + V('v') + ' × ' + V('B') + '). En el libro de Serway (está en la bibliografía de la guía) este problema trae ' + V('E') + ' = 4î − ĵ − 2k̂ V/m. Con ese valor, q' + V('E') + ' = 1,28 × 10⁻¹⁸ î − 3,2 × 10⁻¹⁹ ĵ − 6,4 × 10⁻¹⁹ k̂ N, y la fuerza total es 3,52 × 10⁻¹⁸ î − 1,60 × 10⁻¹⁸ ĵ N.',
+   preset:{modo:'carga', q:3.2e-19, v:[2,3,-1], B:[2,4,1]}},
+
+  {id:'g3-3', tema:'fuerza', fuente:'Guía 3 · Ejercicio 3', titulo:'Alambre abcdef sobre un cubo de 75 cm',
+   enunciado:'Un cubo de 75 cm de lado está en un campo uniforme de 0,8 T paralelo al eje x. El alambre abcdef lleva 6 A en el sentido indicado. a) Halla la magnitud y dirección de la fuerza sobre cada segmento ab, bc, cd, de y ef. b) Halla la fuerza total sobre el alambre.',
+   figura:fig({x:[-3, 6.4], y:[-2.6, 4.8], u:30, alt:'Cubo con el alambre abcdef y el campo B en dirección x', items:CUBO}),
+   pasos:[
+     'Coordenadas en metros, con el origen en f: a = (0; 0; 0,75), b = (0; 0,75; 0,75), c = (0,75; 0,75; 0), d = (0,75; 0; 0,75), e = (0,75; 0; 0), f = (0; 0; 0).',
+     'Cada fuerza es ' + V('F') + ' = I ' + V('ℓ') + ' × ' + V('B') + ' con ' + V('B') + ' = 0,8 î T. Como I ℓ B = (6)(0,75)(0,8) = 3,6 N, en cada tramo solo falta la dirección.',
+     'ab: ' + V('ℓ') + ' = 0,75 ĵ. ĵ × î = −k̂ → ' + V('F') + '<sub>ab</sub> = −3,6 k̂ N.',
+     'bc (diagonal de la cara de arriba): ' + V('ℓ') + ' = 0,75 î − 0,75 k̂. î × î = 0 y (−k̂) × î = −ĵ → ' + V('F') + '<sub>bc</sub> = −3,6 ĵ N.',
+     'cd (diagonal de la cara derecha): ' + V('ℓ') + ' = −0,75 ĵ + 0,75 k̂. (−ĵ) × î = k̂ y k̂ × î = ĵ → ' + V('F') + '<sub>cd</sub> = 3,6 ĵ + 3,6 k̂ N, con |F<sub>cd</sub>| = 3,6√2 = 5,09 N.',
+     'de: ' + V('ℓ') + ' = −0,75 k̂. (−k̂) × î = −ĵ → ' + V('F') + '<sub>de</sub> = −3,6 ĵ N.',
+     'ef: ' + V('ℓ') + ' = −0,75 î, paralelo a ' + V('B') + ' → ' + V('F') + '<sub>ef</sub> = 0.',
+     'Suma: k̂: −3,6 + 3,6 = 0. ĵ: −3,6 + 3,6 − 3,6 = −3,6.'
+   ],
+   resultado:'a) F<sub>ab</sub> = −3,6 k̂ N; F<sub>bc</sub> = −3,6 ĵ N; F<sub>cd</sub> = 3,6 ĵ + 3,6 k̂ N (5,09 N); F<sub>de</sub> = −3,6 ĵ N; F<sub>ef</sub> = 0. &nbsp;b) ' + V('F') + '<sub>total</sub> = −3,6 ĵ N',
+   tip:'Para b): el alambre es abierto, así que la fuerza total es la de un cable recto de a a f. ' + V('ℓ') + '<sub>af</sub> = −0,75 k̂ m, y 6 (−0,75 k̂) × 0,8 î = −3,6 ĵ N.',
+   preset:{modo:'espira', I:6, puntos:[[0,0,0.75],[0,0.75,0.75],[0.75,0.75,0],[0.75,0,0.75],[0.75,0,0],[0,0,0]], B:[0.8,0,0], nombres:['a','b','c','d','e','f'], abierto:true}},
+
+  {id:'g3-4', tema:'fuerza', fuente:'Guía 3 · Ejercicio 4', titulo:'Fuerza que q₂ ejerce sobre q₁',
+   enunciado:'Dos cargas: q₁ = −5 μC está en (0; 9 cm) y se mueve a 8 × 10⁴ m/s hacia −x; q₂ = 8 μC está en (7 cm; 0) y se mueve a 9 × 10⁴ m/s hacia −y. En ese instante, halla la fuerza magnética que q₂ ejerce sobre q₁.',
+   figura:fig({x:[-3.6, 9.4], y:[-3, 10.8], u:22, ejes:true, alt:'q1 sobre el eje y moviéndose a la izquierda; q2 sobre el eje x moviéndose hacia abajo', items:[
+     {t:'linea', a:[7,0], b:[0,9], label:'r', lx:12, ly:4},
+     {t:'carga', p:[0,9], s:'−', label:'q₁ = −5 μC', lx:14, ly:-16, anchor:'start'}, {t:'flecha', a:[-0.45,9], b:[-3,9], label:'v₁', ly:-12},
+     {t:'carga', p:[7,0], s:'+', label:'q₂ = 8 μC', ly:-18}, {t:'flecha', a:[7,-0.45], b:[7,-2.6], label:'v₂', lx:14},
+     {t:'texto', p:[3.5, -0.8], s:'7 cm'}, {t:'texto', p:[0.4, 4.5], s:'9 cm', anchor:'start'}]}),
+   pasos:[
+     V('F') + '<sub>21</sub> = q₁ ' + V('v') + '<sub>1</sub> × ' + V('B') + '<sub>2</sub>, donde ' + V('B') + '<sub>2</sub> es el campo de q₂ en la posición de q₁.',
+     'De q₂ a q₁: ' + V('r') + ' = −7 î + 9 ĵ cm, r = √(7² + 9²) = √130 = 11,4 cm, r̂ = −0,614 î + 0,789 ĵ.',
+     'Dirección de ' + V('B') + '<sub>2</sub>: v̂₂ × r̂ = (−ĵ) × (−0,614 î + 0,789 ĵ) = −0,614 k̂ (ĵ × î = −k̂ y ĵ × ĵ = 0).',
+     '|B₂| sin el factor angular: 10⁻⁷ (8 × 10⁻⁶)(9 × 10⁴) / (0,114)² = 5,54 × 10⁻⁶ T. ' + V('B') + '<sub>2</sub> = 5,54 × 10⁻⁶ × (−0,614) k̂ = −3,40 × 10⁻⁶ k̂ T.',
+     V('F') + '<sub>21</sub> = (−5 × 10⁻⁶)(−8 × 10⁴ î) × (−3,40 × 10⁻⁶ k̂) = (0,4 î) × (−3,40 × 10⁻⁶ k̂). Como î × k̂ = −ĵ, queda +1,36 × 10⁻⁶ ĵ.'
+   ],
+   resultado:V('F') + '<sub>21</sub> = 1,36 × 10⁻⁶ ĵ N',
+   tip:'Es el mismo procedimiento que «Fuerza que q₁ ejerce sobre q₂» de los apuntes, pero al revés: aquí la carga que produce el campo es q₂ y la que siente la fuerza es q₁.',
+   preset:{modo:'campo', q:8e-6, v:[0,-9e4,0], P:[-0.07,0.09,0]}},
+
+  {id:'g3-5', tema:'cable', fuente:'Guía 3 · Ejercicio 5', titulo:'Tres conductores largos: campo en A',
+   enunciado:'Tres conductores largos y rectos, perpendiculares a la hoja: el cable 1 está en A (0; 3 cm) y lleva 3 A saliendo; el cable 2 está en B (el origen) y lleva 4 A entrando; el cable 3 está en C (4 cm; 0) y lleva 5 A saliendo. Calcula el campo magnético individual y total en el punto A.',
+   figura:fig({x:[-1.8, 6.4], y:[-1.6, 4.6], u:34, alt:'Cables en A, B y C; A arriba del origen, C a la derecha', items:[
+     {t:'linea', a:[0,0], b:[0,3], c:'m'}, {t:'linea', a:[0,0], b:[4,0], c:'m'}, {t:'linea', a:[4,0], b:[0,3], c:'m'},
+     {t:'alambre', p:[0,3], sale:true, label:'A · cable 1: 3 A', lx:14, ly:-14, anchor:'start'},
+     {t:'alambre', p:[0,0], sale:false, label:'B · cable 2: 4 A', ly:22},
+     {t:'alambre', p:[4,0], sale:true, label:'C · cable 3: 5 A', ly:22},
+     {t:'texto', p:[-0.3, 1.5], s:'3 cm', anchor:'end'}, {t:'texto', p:[2, 0.4], s:'4 cm'}, {t:'texto', p:[2.3, 1.85], s:'5 cm', anchor:'start'}]}),
+   pasos:[
+     'El punto A está sobre el cable 1, y un cable no produce campo sobre sí mismo (r = 0). En A solo cuentan los cables 2 y 3.',
+     'Cable 2 (en B, 4 A ⊗): r̂ = ĵ, d = 3 cm. |B₂| = 2 × 10⁻⁷ · 4 / 0,03 = 2,67 × 10⁻⁵ T. (−k̂) × ĵ = î → ' + V('B') + '₂ = 2,67 × 10⁻⁵ î T.',
+     'Cable 3 (en C, 5 A ⊙): ' + V('r') + ' = −4 î + 3 ĵ cm, d = 5 cm, r̂ = −0,8 î + 0,6 ĵ. |B₃| = 2 × 10⁻⁷ · 5 / 0,05 = 2 × 10⁻⁵ T. k̂ × (−0,8 î + 0,6 ĵ) = −0,6 î − 0,8 ĵ → ' + V('B') + '₃ = −1,2 × 10⁻⁵ î − 1,6 × 10⁻⁵ ĵ T.',
+     'Suma por componentes. î: 2,67 × 10⁻⁵ − 1,2 × 10⁻⁵ = 1,47 × 10⁻⁵. ĵ: 0 − 1,6 × 10⁻⁵ = −1,6 × 10⁻⁵.'
+   ],
+   resultado:'<div class="table-scroll"><table class="rtable"><tr><th>Cable</th><th>' + V('B') + ' en A (T)</th></tr>' +
+     '<tr><td>1 (en A)</td><td>no aporta</td></tr><tr><td>2 (en B)</td><td>2,67 × 10⁻⁵ î</td></tr><tr><td>3 (en C)</td><td>−1,2 × 10⁻⁵ î − 1,6 × 10⁻⁵ ĵ</td></tr>' +
+     '<tr><td><b>Total</b></td><td><b>1,47 × 10⁻⁵ î − 1,6 × 10⁻⁵ ĵ</b></td></tr></table></div>|B<sub>A</sub>| = 2,17 × 10⁻⁵ T',
+   tip:'Este es el campo que siente el cable 1. La fuerza por metro sobre él es F/L = I₁ k̂ × ' + V('B') + '<sub>A</sub> = 3 k̂ × (1,47 × 10⁻⁵ î − 1,6 × 10⁻⁵ ĵ) = 4,8 × 10⁻⁵ î + 4,4 × 10⁻⁵ ĵ N/m.',
+   preset:null},
+
+  {id:'g3-6', tema:'cable', fuente:'Guía 3 · Ejercicio 6', titulo:'Cable largo y lazo rectangular',
+   enunciado:'Un alambre recto y largo lleva I₁ = 5 A hacia arriba. A su derecha, en el mismo plano, hay un lazo rectangular que lleva I₂ = 10 A en sentido horario. El lado cercano del lazo está a c = 0,100 m del alambre; el lazo mide a = 0,150 m de ancho y ℓ = 0,450 m de alto. Halla la magnitud y dirección de la fuerza neta que el campo del alambre ejerce sobre el lazo.',
+   figura:fig({x:[-0.9, 4.4], y:[-1.5, 5.8], u:36, alt:'Alambre vertical a la izquierda y lazo rectangular a su derecha con las cuatro fuerzas', items:[
+     {t:'seg', a:[0,-0.4], b:[0,5.1], w:5, label:'I₁', lx:-14, anchor:'end', math:true},
+     {t:'seg', a:[1,0], b:[1,4.5]}, {t:'seg', a:[1,4.5], b:[2.5,4.5]}, {t:'seg', a:[2.5,4.5], b:[2.5,0]}, {t:'seg', a:[2.5,0], b:[1,0]},
+     {t:'flecha', a:[1,2.25], b:[0.35,2.25], c:'f', label:'F₁', ly:-12},
+     {t:'flecha', a:[2.5,2.25], b:[3.2,2.25], c:'f', label:'F₃', ly:-12},
+     {t:'flecha', a:[1.75,4.5], b:[1.75,5.2], c:'f', label:'F₂', lx:16},
+     {t:'flecha', a:[1.75,0], b:[1.75,-0.7], c:'f', label:'F₄', lx:-16},
+     {t:'texto', p:[1.35, 3.4], s:'I₂', c:'v', anchor:'start', math:true},
+     {t:'texto', p:[0.5, -0.5], s:'c'}, {t:'texto', p:[2.3, -0.5], s:'a'}, {t:'texto', p:[2.8, 3.6], s:'ℓ', math:true, anchor:'start'}]}),
+   pasos:[
+     'El alambre produce B = μ₀ I₁ / (2π d), que entra en la hoja a su derecha y se debilita al alejarse.',
+     'Lado izquierdo (F₁): está a c = 0,1 m y su corriente sube, paralela a I₁ → atracción. F₁ = μ₀ I₁ I₂ ℓ / (2π c) = 2 × 10⁻⁷ (5)(10)(0,45) / 0,1 = 4,5 × 10⁻⁵ N hacia el alambre (−î).',
+     'Lado derecho (F₃): está a c + a = 0,25 m y su corriente baja, opuesta a I₁ → repulsión. F₃ = 2 × 10⁻⁷ (5)(10)(0,45) / 0,25 = 1,8 × 10⁻⁵ N alejándose (+î).',
+     'Lados de arriba y de abajo (F₂ y F₄): están a las mismas distancias del alambre pero llevan corrientes opuestas, así que sus fuerzas son iguales y opuestas y se cancelan.',
+     'Suma: −4,5 × 10⁻⁵ î + 1,8 × 10⁻⁵ î = −2,7 × 10⁻⁵ î N.'
+   ],
+   resultado:V('F') + '<sub>neta</sub> = 2,7 × 10⁻⁵ N hacia el alambre (−2,7 × 10⁻⁵ î N)',
+   notaTitulo:'Ojo con la guía.',
+   nota:'La guía dice «c = 1» sin unidades. Aquí se usa c = 0,100 m, el valor del problema original del Serway (bibliografía de la guía). Si fuera c = 1 m, la fuerza neta sería 5,87 × 10⁻⁷ N, también hacia el alambre.',
+   preset:null},
+
+  {id:'g3-7', tema:'cable', fuente:'Guía 3 · Ejercicio 7', titulo:'Bobina de 100 espiras: campo en el eje',
+   enunciado:'Una bobina de 100 espiras circulares de radio 0,60 m lleva 5 A. Calcula el campo magnético en un punto del eje de la bobina, a 0,80 m de su centro.',
+   figura:fig({x:[-3, 12.4], y:[-7.2, 7.6], u:18, alt:'Bobina vista de lado con su eje y el punto P a 0,80 m', items:[
+     {t:'elipse', p:[-0.35,0], rx:1, ry:6, c:'v'}, {t:'elipse', p:[0,0], rx:1, ry:6, c:'v'}, {t:'elipse', p:[0.35,0], rx:1, ry:6, c:'v'},
+     {t:'linea', a:[-2.6,0], b:[11.8,0], c:'m'}, {t:'linea', a:[0,0], b:[0,6], c:'m'},
+     {t:'punto', p:[8,0], c:'r', label:'P', ly:-14}, {t:'flecha', a:[8.3,0], b:[10.6,0], c:'b', label:'B', ly:-12},
+     {t:'texto', p:[0.7, 3.2], s:'R = 0,60 m', anchor:'start'}, {t:'texto', p:[4, 0.9], s:'x = 0,80 m'},
+     {t:'texto', p:[4.5, -5.2], s:'N = 100 espiras · I = 5 A', anchor:'start'}]}),
+   pasos:[
+     'Cada pedacito de las espiras aporta un campo. Al sumarlos, las componentes perpendiculares al eje se cancelan por simetría y solo queda la componente a lo largo del eje.',
+     'Resultado para N espiras: B = μ₀ N I R² / [2 (R² + x²)<sup>3/2</sup>].',
+     'R² + x² = 0,36 + 0,64 = 1,00 m², así que (R² + x²)<sup>3/2</sup> = 1,00 m³.',
+     'B = (4π × 10⁻⁷)(100)(5)(0,36) / (2 · 1,00) = 1,13 × 10⁻⁴ T.',
+     'Dirección: a lo largo del eje. Con la mano derecha, los dedos siguen la corriente de las espiras y el pulgar marca el sentido de B.'
+   ],
+   resultado:'B = 1,13 × 10⁻⁴ T, a lo largo del eje de la bobina',
+   notaTitulo:'Tema nuevo.',
+   nota:'Esta fórmula todavía no aparece en los apuntes de clase; está en Teoría, en «Campo de cables y bobinas». En el centro de la bobina (x = 0) el campo es B = μ₀ N I / (2R) = 5,24 × 10⁻⁴ T: a 0,80 m ya es casi 5 veces menor.',
+   preset:null},
+
+  {id:'g3-8', tema:'induccion', fuente:'Guía 3 · Ejercicio 8', titulo:'Barra que se desliza sobre un conductor en U',
+   enunciado:'Una barra metálica de 20 cm se desliza a 1 m/s sobre un conductor en forma de U. El circuito está en un campo uniforme de 0,05 T perpendicular a él (entrando en la hoja). ¿Cuál es la fem inducida?',
+   figura:fig({x:[-0.8, 7.6], y:[-1.8, 5.2], u:32, alt:'Conductor en U con una barra que se mueve a la derecha dentro de un campo que entra en la hoja', items:[
+     {t:'campos', tipo:'cross', pts:grilla([1, 2, 3], [0.9, 2.1]).concat(grilla([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5], [-1, 4])).concat(grilla([5.2, 6.4], [0.6]))},
+     {t:'linea', solid:true, w:5, a:[6.6,3], b:[0,3], c:'r'}, {t:'linea', solid:true, w:5, a:[0,3], b:[0,0], c:'r'}, {t:'linea', solid:true, w:5, a:[0,0], b:[6.6,0], c:'r'},
+     {t:'linea', solid:true, w:9, a:[4.2,-0.5], b:[4.2,3.5], c:'i'},
+     {t:'flecha', a:[4.6,1.5], b:[6.4,1.5], c:'v', label:'v', ly:-12},
+     {t:'texto', p:[3.7, 1.5], s:'ℓ = 20 cm', anchor:'end'}, {t:'texto', p:[1.8, 4.65], s:'B = 0,05 T (⊗)', c:'b'}]}),
+   pasos:[
+     'Al moverse la barra hacia la derecha, el área del circuito crece, y con ella el flujo Φ = B · A. Ese cambio de flujo induce una fem (ley de Faraday).',
+     'En un tiempo dt la barra avanza v dt, así que el área crece dA = ℓ v dt y dΦ/dt = B ℓ v.',
+     'ε = B ℓ v = (0,05)(0,20)(1) = 0,01 V.',
+     'Sentido: sobre las cargas positivas de la barra actúa q ' + V('v') + ' × ' + V('B') + ' = q î × (−k̂) = q ĵ, hacia arriba. La corriente sube por la barra y recorre el circuito en sentido antihorario. Coincide con la ley de Lenz: el flujo que entra crece, y la corriente crea un campo que sale de la hoja para oponerse.'
+   ],
+   resultado:'ε = 0,01 V = 10 mV (la corriente circula en sentido antihorario)',
+   notaTitulo:'Tema nuevo.',
+   nota:'La inducción todavía no aparece en los apuntes de clase. Las fórmulas están en Teoría, en «Inducción electromagnética».',
+   preset:null}
+);
+
 /* Ordenar los resueltos por tema, conservando el orden dentro de cada tema */
 (function () {
   var orden = TEMAS.map(function (t) { return t.id; });
@@ -1495,7 +1808,7 @@ function pintarControles() {
     h += grupoVector('cable.B', 'Campo <span class="vec">B</span>', '--bcol', d.B, 'T', true);
   } else if (m === 'espira') {
     var opts = Object.keys(LOOPS).map(function (k) { return '<option value="' + k + '"' + (d.loop === k ? ' selected' : '') + '>' + LOOPS[k].nombre + '</option>'; }).join('');
-    if (d.custom) opts += '<option value="custom"' + (d.loop === 'custom' ? ' selected' : '') + '>Del ejercicio de práctica</option>';
+    if (d.custom) opts += '<option value="custom"' + (d.loop === 'custom' ? ' selected' : '') + '>Del ejercicio</option>';
     h += '<div class="ctrl-group"><label class="ctrl-label" for="loopSel">Forma del cable</label><select class="field" id="loopSel">' + opts + '</select></div>';
     h += '<div class="ctrl-group"><div class="ctrl-label"><span>Corriente I <span class="muted small">[A]</span></span></div><div class="comp" style="grid-template-columns:minmax(0,1fr)">' + campoInput('espira.I', d.I, 'Sentido: a → b → c → …') + '</div></div>';
     h += grupoVector('espira.B', 'Campo uniforme <span class="vec">B</span>', '--bcol', d.B, 'T', true);
@@ -1837,15 +2150,16 @@ function cargarPreset(p) {
 var rs = {filtro:'todos', paso:{}};
 function pintarFiltros(sel, estado, onChange) {
   var opts = [{id:'todos', nombre:'Todos'}].concat(TEMAS);
+  if (sel === '#solvedFilters') opts.push({id:'guia3', nombre:'Guía de estudio 3'});
   $(sel).innerHTML = opts.map(function (t) { return '<button type="button" class="pill" data-f="' + t.id + '" aria-pressed="' + (estado.filtro === t.id) + '">' + esc(t.nombre) + '</button>'; }).join('');
   $$(sel + ' button').forEach(function (b) { b.addEventListener('click', function () { estado.filtro = b.dataset.f; pintarFiltros(sel, estado, onChange); onChange(); }); });
 }
 function pintarResueltos() {
-  var lista = RESUELTOS.filter(function (r) { return rs.filtro === 'todos' || r.tema === rs.filtro; });
+  var lista = RESUELTOS.filter(function (r) { return rs.filtro === 'todos' || r.tema === rs.filtro || (rs.filtro === 'guia3' && /^Guía 3/.test(r.fuente || '')); });
   $('#solvedList').innerHTML = lista.map(function (r) {
     var k = rs.paso[r.id] || 0, total = r.pasos.length, fin = k > total;
     var badge = r.pendiente ? '<span class="badge pend">Enunciado incompleto</span>' : prog.resueltos[r.id] ? '<span class="badge done">Revisado</span>' : '<span class="badge">' + total + ' pasos</span>';
-    var h = '<article class="panel solved" id="sol-' + r.id + '"><div class="solved-head"><div class="meta"><span class="eyebrow">' + esc(temaNombre(r.tema)) + '</span><h3>' + r.titulo + '</h3></div>' + badge + '</div>';
+    var h = '<article class="panel solved" id="sol-' + r.id + '"><div class="solved-head"><div class="meta"><span class="eyebrow">' + esc(temaNombre(r.tema)) + (r.fuente ? ' · ' + esc(r.fuente) : '') + '</span><h3>' + r.titulo + '</h3></div>' + badge + '</div>';
     h += '<p class="statement">' + r.enunciado + '</p>';
     if (r.figura) h += r.figura;
     if (r.pendiente) h += '<div class="note">' + r.pendiente + '</div>';
@@ -1853,7 +2167,7 @@ function pintarResueltos() {
     if (fin) {
       h += '<div class="answer">' + r.resultado + '</div>';
       if (r.tip) h += '<div class="note tip"><b>Atajo.</b> ' + r.tip + '</div>';
-      if (r.nota) h += '<div class="note"><b>Ojo con los apuntes.</b> ' + r.nota + '</div>';
+      if (r.nota) h += '<div class="note"><b>' + (r.notaTitulo || 'Ojo con los apuntes.') + '</b> ' + r.nota + '</div>';
     }
     h += '<div class="row">';
     if (!fin) h += '<button class="btn primary" type="button" data-act="next" data-id="' + r.id + '">' + (k === 0 ? 'Empezar' : k < total ? 'Siguiente paso' : 'Ver resultado') + '</button>' +
@@ -1914,7 +2228,7 @@ function pintarProblema() {
       return '<button type="button" class="' + cls + '" data-o="' + i + '" aria-pressed="' + (pr.sel === o) + '">' + o + '</button>';
     }).join('') + '</div>';
   } else if (g.tipo === 'escalar') {
-    h += '<div class="answer-row one"><label>|F|<input class="field" id="ans0" type="text" inputmode="decimal" autocomplete="off" placeholder="ej. 5,2e-4" value="' + esc(pr.vals[0]) + '"></label><span class="unit">' + p.unidad + '</span></div>';
+    h += '<div class="answer-row one"><label>' + (p.etiqueta || '|F|') + '<input class="field" id="ans0" type="text" inputmode="decimal" autocomplete="off" placeholder="ej. 5,2e-4" value="' + esc(pr.vals[0]) + '"></label><span class="unit">' + p.unidad + '</span></div>';
   } else {
     var nom = p.unidad === 'T' ? 'B' : 'F';
     h += '<div class="answer-row">' + ['x', 'y', 'z'].map(function (c, i) {
@@ -1931,7 +2245,7 @@ function pintarProblema() {
   var mostrar = pr.fb && (pr.fb.ok || pr.revelado >= p.pasos.length) ? p.pasos.length : pr.revelado;
   if (mostrar > 0) {
     h += '<div style="display:flex; flex-direction:column; gap:8px"><span class="eyebrow">Solución paso a paso</span><ol class="steps">' + p.pasos.slice(0, mostrar).map(function (s) { return '<li><div>' + s + '</div></li>'; }).join('') + '</ol></div>';
-    if (mostrar >= p.pasos.length && g.tipo !== 'mc') h += '<div class="answer">' + (g.tipo === 'escalar' ? '|F| = ' + fmt(p.respuesta[0]) : (p.unidad === 'T' ? '<span class="vec">B</span>' : '<span class="vec">F</span>') + ' = ' + vecStr(p.respuesta)) + ' ' + p.unidad + '</div>';
+    if (mostrar >= p.pasos.length && g.tipo !== 'mc') h += '<div class="answer">' + (g.tipo === 'escalar' ? (p.etiqueta || '|F|') + ' = ' + fmt(p.respuesta[0]) : (p.unidad === 'T' ? '<span class="vec">B</span>' : '<span class="vec">F</span>') + ' = ' + vecStr(p.respuesta)) + ' ' + p.unidad + '</div>';
   }
   var box = $('#problem');
   box.innerHTML = h;
